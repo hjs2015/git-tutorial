@@ -5246,6 +5246,267 @@ nx affected --target=build
 npx turbo run build
 ```
 
+### 7.8 完整工作流案例：从零到部署
+
+> 💼 **端到端实战案例**：将零散命令串联起来，完成从新建仓库到故障回滚的完整流程
+
+#### 场景背景
+
+**项目**：电商平台用户认证模块
+**团队**：3 人开发小组
+**周期**：2 周
+**分支策略**：Git Flow
+**部署方式**：CI/CD 自动部署
+
+---
+
+#### 阶段 1：新建仓库与初始化
+
+```bash
+# 1.1 创建远程仓库（GitHub 网页）后克隆
+git clone git@github.com:company/ecommerce-auth.git
+cd ecommerce-auth
+
+# 1.2 配置用户信息
+git config user.name "hjs2015"
+git config user.email "1656126280@qq.com"
+
+# 1.3 初始化 Git Flow
+git flow init -d
+
+# 1.4 创建初始结构并提交
+mkdir -p src/{controllers,services,models}
+touch README.md .gitignore src/index.js
+
+# 1.5 首次提交
+git add .
+git commit -m "feat: initialize project structure
+
+- Create basic directory structure
+- Add .gitignore for Node.js project
+
+Refs: PROJ-1"
+
+git push -u origin develop
+```
+
+---
+
+#### 阶段 2：分支开发与提交规范
+
+```bash
+# 2.1 创建功能分支
+git switch develop
+git switch -c feature/user-login
+git push -u origin feature/user-login
+
+# 2.2 开发并提交（遵循 Conventional Commits）
+# ... 编写代码 ...
+
+git add src/models/User.js
+git commit -m "feat(auth): add user model
+
+- Define User schema with email/password
+- Add password hashing with bcrypt
+
+Refs: AUTH-1"
+
+# 2.3 继续开发
+git add src/controllers/authController.js
+git commit -m "feat(auth): implement login endpoint
+
+- POST /api/auth/login
+- Generate JWT token
+
+Refs: AUTH-2"
+
+# 2.4 推送到远程
+git push origin feature/user-login
+
+# 2.5 同步 develop 分支（避免冲突）
+git fetch origin
+git rebase origin/develop
+git push --force-with-lease origin feature/user-login
+```
+
+---
+
+#### 阶段 3：代码审查与合并
+
+```bash
+# 3.1 GitHub 创建 Pull Request
+# 标题：feat(auth): user login implementation
+# 审查者：@team-lead @senior-dev
+# 关联 Issue：Closes AUTH-1, AUTH-2
+
+# 3.2 根据审查意见修改
+git switch feature/user-login
+# ... 修改代码 ...
+git add .
+git commit -m "fix(auth): address code review comments
+
+- Add input sanitization
+- Improve error messages
+
+Refs: AUTH-2"
+
+git push origin feature/user-login
+
+# 3.3 审查通过后合并
+git switch develop
+git pull origin develop
+git merge --no-ff feature/user-login
+git push origin develop
+
+# 3.4 删除功能分支
+git branch -d feature/user-login
+git push origin --delete feature/user-login
+```
+
+---
+
+#### 阶段 4：发布与部署
+
+```bash
+# 4.1 创建 release 分支
+git switch develop
+git switch -c release/v1.0.0
+
+# 4.2 版本号更新
+npm version 1.0.0 --no-git-tag-version
+git commit -am "chore: bump version to 1.0.0"
+
+# 4.3 合并到 main
+git switch main
+git merge --no-ff release/v1.0.0
+git tag -a v1.0.0 -m "Release version 1.0.0"
+
+# 4.4 合并回 develop
+git switch develop
+git merge --no-ff release/v1.0.0
+
+# 4.5 删除 release 分支并推送
+git branch -d release/v1.0.0
+git push origin main develop --tags
+
+# 4.6 CI/CD 自动部署（GitHub Actions）
+# 查看部署状态：GitHub Actions → Deployments
+```
+
+---
+
+#### 阶段 5：故障排查与回滚
+
+```bash
+# 5.1 发现 Bug，使用 bisect 定位
+git bisect start
+git bisect bad main
+git bisect good v1.0.0
+git bisect run npm test
+# 输出：abc1234 is the first bad commit
+
+# 5.2 紧急修复（Hotfix）
+git switch main
+git switch -c hotfix/login-error
+# ... 修复代码 ...
+git commit -m "fix(auth): resolve login error
+
+Fixes: AUTH-15"
+
+git switch main
+git merge --no-ff hotfix/login-error
+git tag -a v1.0.1 -m "Hotfix: login error fix"
+
+git switch develop
+git merge --no-ff hotfix/login-error
+git branch -d hotfix/login-error
+git push origin main develop --tags
+
+# 5.3 回滚错误发布（安全方式）
+git switch main
+git revert abc1234..def5678
+git push origin main
+```
+
+---
+
+#### 阶段 6：误操作恢复
+
+```bash
+# 6.1 误删分支恢复
+git branch -D feature/important-work
+git reflog | grep "feature/important-work"
+# 输出：abc1234 HEAD@{3}: checkout: moving from feature/important-work to main
+git switch -c feature/important-work abc1234
+
+# 6.2 错误 rebase 恢复
+git rebase --abort
+# 或
+git reset --hard HEAD@{1}
+
+# 6.3 提交敏感信息（已推送）
+java -jar bfg.jar --delete-files .env
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+git push --force-with-lease
+# ⚠️ 通知团队更新本地仓库，轮换泄露的密钥
+```
+
+---
+
+#### 完整工作流可视化
+
+```mermaid
+gitGraph
+    commit id: "初始化"
+    branch develop
+    checkout develop
+    commit id: "初始结构"
+    
+    branch feature/login
+    checkout feature/login
+    commit id: "用户模型"
+    commit id: "登录接口"
+    
+    checkout develop
+    merge feature/login id: "合并"
+    
+    branch release/v1.0
+    checkout release/v1.0
+    commit id: "发布准备"
+    
+    checkout main
+    merge release/v1.0 id: "v1.0.0" tag: "v1.0.0"
+    
+    checkout develop
+    merge release/v1.0
+    
+    checkout main
+    branch hotfix/error
+    checkout hotfix/error
+    commit id: "紧急修复"
+    
+    checkout main
+    merge hotfix/error id: "v1.0.1" tag: "v1.0.1"
+    
+    checkout develop
+    merge hotfix/error
+```
+
+---
+
+#### 关键检查点清单
+
+| 阶段 | 检查项 | 命令 |
+|:---|:---|:---|
+| **初始化** | 仓库配置正确 | `git config --list` |
+| **开发** | 分支命名规范 | `git branch -a` |
+| **提交** | 提交信息规范 | `git log --oneline` |
+| **推送前** | 代码审查通过 | PR 状态检查 |
+| **合并前** | 测试全部通过 | CI 状态检查 |
+| **发布前** | 版本号更新 | `npm version` |
+| **部署后** | 监控正常 | 生产环境检查 |
+
 ---
 
 ## 第 8 章 Git 钩子与工程化集成
@@ -5801,6 +6062,371 @@ git commit -m "merge: resolve conflict in app.js"
 - 熟练后结合图形工具提高效率
 - 复杂冲突使用可视化工具
 
+### 9.4 分支合并冲突解决
+
+#### 冲突产生原因
+
+**常见场景**：
+1. 多人修改同一文件的同一行
+2. 一个分支修改文件，另一个分支删除该文件
+3. rebase 过程中历史 diverged
+
+**冲突示例**：
+```bash
+$ git merge feature/login
+Auto-merging src/auth.js
+CONFLICT (content): Merge conflict in src/auth.js
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+---
+
+#### 解决步骤
+
+**步骤 1：查看冲突文件**
+```bash
+git status
+# 输出：
+# both modified: src/auth.js
+```
+
+**步骤 2：编辑冲突文件**
+```bash
+# 打开冲突文件，看到冲突标记：
+<<<<<<< HEAD
+// 当前分支的代码
+function login(user) {
+  return authenticate(user);
+}
+=======
+// 要合并的分支代码
+function login(user, callback) {
+  return authenticate(user, callback);
+}
+>>>>>>> feature/login
+
+# 编辑后保留需要的代码：
+function login(user, callback) {
+  return authenticate(user, callback);
+}
+```
+
+**步骤 3：标记解决并提交**
+```bash
+git add src/auth.js
+git commit -m "fix: resolve merge conflict in auth.js"
+```
+
+**步骤 4：放弃合并（可选）**
+```bash
+git merge --abort
+```
+
+---
+
+#### 使用工具解决冲突
+
+**VS Code**：
+```bash
+# 安装 GitLens 扩展
+# 冲突文件显示 "Accept Current" | "Accept Incoming" | "Compare"
+# 点击选择保留的代码
+```
+
+**Meld（图形化合并工具）**：
+```bash
+# 安装
+sudo apt install meld
+
+# 配置 Git 使用 Meld
+git config --global merge.tool meld
+git config --global mergetool.meld.cmd "meld \"$LOCAL\" \"$BASE\" \"$REMOTE\""
+
+# 使用
+git mergetool
+```
+
+**GitKraken**：
+- 自动检测冲突
+- 可视化三向对比（本地/远程/合并结果）
+- 点击选择保留的代码块
+
+---
+
+#### 预防冲突最佳实践
+
+1. **频繁同步**
+```bash
+git pull --rebase origin main  # 每天至少 2 次
+```
+
+2. **小步提交**
+- 每次提交功能点尽量小
+- 减少合并冲突范围
+
+3. **沟通协调**
+- 团队成员间沟通修改计划
+- 避免同时修改同一文件
+
+4. **使用变基**
+```bash
+git fetch origin
+git rebase origin/main
+git rebase --continue
+```
+
+---
+
+### 9.5 误删分支恢复
+
+#### 场景 1：删除未合并的分支
+
+```bash
+# 不小心删除了未合并的分支
+git branch -D feature/important-work
+
+# 恢复方法：使用 reflog
+git reflog | grep "feature/important-work"
+# 输出：abc1234 HEAD@{3}: checkout: moving from feature/important-work to main
+
+# 恢复分支
+git switch -c feature/important-work abc1234
+```
+
+---
+
+#### 场景 2：删除已合并的分支
+
+```bash
+# 已合并的分支被删除，需要恢复
+git branch -d feature/completed
+
+# 从远程恢复
+git fetch origin
+git switch -c feature/completed origin/feature/completed
+
+# 或者从 reflog 恢复
+git reflog | grep "feature/completed"
+git switch -c feature/completed abc1234
+```
+
+---
+
+#### 场景 3：恢复删除的标签
+
+```bash
+# 删除了标签
+git tag -d v1.0.0
+
+# 从远程恢复
+git fetch origin tag v1.0.0
+
+# 或者从 reflog 找到标签指向的 commit
+git reflog | grep "v1.0.0"
+git tag v1.0.0 abc1234
+```
+
+---
+
+### 9.6 提交记录篡改后的修复
+
+#### 场景 1：修改已推送的提交（危险）
+
+```bash
+# ⚠️ 警告：仅在没有其他人基于你的工作开发时使用
+
+# 修改最后一次提交
+git commit --amend -m "新的提交信息"
+
+# 强制推送
+git push --force-with-lease origin main
+```
+
+---
+
+#### 场景 2：重写多个提交历史
+
+```bash
+# 使用交互式 rebase
+git rebase -i HEAD~5
+
+# 编辑器中：
+# pick abc123 提交 1
+# reword def456 提交 2  # 修改提交信息
+# edit 789abc 提交 3    # 修改内容
+# squash ghi012 提交 4  # 合并到前一个提交
+
+# 修改完成后：
+git rebase --continue
+
+# 强制推送
+git push --force-with-lease origin main
+```
+
+---
+
+#### 场景 3：恢复被重写的历史
+
+```bash
+# 如果重写后发现问题，可以恢复
+git reflog | grep "rebase finished"
+# 找到 rebase 前的 commit
+
+# 重置回原状态
+git reset --hard HEAD@{1}
+
+# 或者恢复到特定 reflog 条目
+git reset --hard abc1234
+```
+
+---
+
+#### 场景 4：移除敏感信息
+
+```bash
+# 不小心提交了密码/API Key
+
+# 方法 1：BFG Repo-Cleaner（推荐）
+java -jar bfg.jar --delete-files .env
+java -jar bfg.jar --replace-text passwords.txt
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+git push --force-with-lease
+
+# 方法 2：git filter-branch（传统方法）
+git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch .env" \
+  --prune-empty --tag-name-filter cat -- --all
+
+# 清理后
+git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+git push --force-with-lease
+
+# ⚠️ 重要：通知团队更新本地仓库
+# ⚠️ 立即轮换泄露的密码/密钥
+```
+
+---
+
+### 9.7 远程仓库问题
+
+#### 问题 1：远程地址错误
+
+```bash
+# 查看当前远程地址
+git remote -v
+
+# 修改远程地址
+git remote set-url origin git@github.com:user/new-repo.git
+
+# 验证
+git remote -v
+```
+
+---
+
+#### 问题 2：权限错误
+
+```bash
+# 错误：Permission denied (publickey)
+
+# 解决方案 1：检查 SSH 密钥
+ssh -T git@github.com
+
+# 解决方案 2：重新添加 SSH 密钥
+ssh-keygen -t ed25519 -C "your_email@example.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+# 上传公钥到 GitHub Settings → SSH and GPG keys
+
+# 解决方案 3：使用 HTTPS + Token
+git remote set-url origin https://github.com/user/repo.git
+# 推送时会提示输入 Token
+```
+
+---
+
+#### 问题 3：Fork 仓库同步
+
+```bash
+# 同步 Fork 的仓库到上游仓库
+
+# 1. 添加上游远程仓库
+git remote add upstream git@github.com:original-owner/repo.git
+
+# 2. 获取上游更新
+git fetch upstream
+
+# 3. 切换到 main 分支
+git switch main
+
+# 4. 合并上游更新
+git merge upstream/main
+
+# 5. 推送到自己的 Fork
+git push origin main
+
+# 或者使用 pull
+git pull upstream main
+```
+
+---
+
+### 9.8 性能问题排查
+
+#### 问题 1：仓库太大
+
+```bash
+# 查看仓库大小
+du -sh .git
+
+# 查看大文件
+git rev-list --objects --all | \
+  grep "$(git verify-pack -v .git/objects/pack/*.idx | \
+  sort -k 3 -n | tail -5 | awk '{print$1}')"
+
+# 清理大文件（BFG）
+java -jar bfg.jar --strip-blobs-bigger-than 100M .
+
+# 垃圾回收
+git gc --aggressive
+```
+
+---
+
+#### 问题 2：克隆/拉取慢
+
+```bash
+# 使用浅克隆
+git clone --depth 1 <repository-url>
+
+# 启用并行获取
+git config --global fetch.parallel 10
+
+# 使用镜像（国内）
+git clone https://gitee.com/mirror/repo.git
+```
+
+---
+
+#### 问题 3：操作变慢
+
+```bash
+# 检查仓库健康
+git fsck --full
+
+# 垃圾回收
+git gc --prune=now
+
+# 清理 reflog
+git reflog expire --expire=now --all
+
+# 优化 pack 文件
+git repack -a -d --depth=250 --window=250
+```
+
 ---
 
 ## 第 10 章 高频常见问题解决方案
@@ -5992,6 +6618,185 @@ git rebase --continue
 ---
 
 ## 附录 A：命令速查表
+
+### A.0 命令速查总览（思维导图式）
+
+> 🎯 **快速定位**：根据场景快速找到所需命令
+
+#### 新手入门（前 5 个命令）
+
+```
+┌─────────────────────────────────────────────────┐
+│  1. git init          → 初始化仓库              │
+│  2. git clone <url>   → 克隆仓库                │
+│  3. git status        → 查看状态                │
+│  4. git add .         → 添加文件                │
+│  5. git commit -m ""  → 提交更改                │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+#### 日常开发流程
+
+```mermaid
+graph LR
+    A[开始工作] --> B[git pull]
+    B --> C[git switch -c feature]
+    C --> D[编写代码]
+    D --> E[git add + commit]
+    E --> F{完成？}
+    F -->|否 | D
+    F -->|是 | G[git push]
+    G --> H[创建 PR]
+```
+
+**对应命令**：
+
+| 步骤 | 命令 | 频率 |
+|:---|:---|:---:|
+| 同步代码 | `git pull --rebase origin main` | 每天 2-3 次 |
+| 创建分支 | `git switch -c feature/xxx` | 每个功能 1 次 |
+| 暂存更改 | `git add .` 或 `git add -p` | 多次 |
+| 提交 | `git commit -m "feat: xxx"` | 多次 |
+| 推送 | `git push -u origin feature` | 每天 1-2 次 |
+
+---
+
+#### 撤销操作速查
+
+```
+撤销修改
+├── 工作区 → git restore <file>
+├── 暂存区 → git restore --staged <file>
+├── 提交   → git reset HEAD~1 (--soft/--mixed/--hard)
+└── 已推送 → git revert <commit>
+```
+
+**详细对比**：
+
+| 场景 | 命令 | 危险度 |
+|:---|:---|:---:|
+| 丢弃未暂存的修改 | `git restore <file>` | ⭐ |
+| 从暂存区恢复 | `git restore --staged <file>` | ⭐⭐ |
+| 撤销提交（保留修改） | `git reset --soft HEAD~1` | ⭐⭐ |
+| 撤销提交（丢弃修改） | `git reset --hard HEAD~1` | ⭐⭐⭐⭐⭐ |
+| 回滚已推送的提交 | `git revert <commit>` | ⭐ |
+
+---
+
+#### 分支操作速查
+
+```
+分支管理
+├── 查看    → git branch (-a/-r)
+├── 创建    → git branch <name> 或 git switch -c <name>
+├── 切换    → git switch <name>
+├── 合并    → git merge <branch>
+├── 变基    → git rebase <branch>
+└── 删除    → git branch -d/-D <name>
+```
+
+**分支工作流**：
+
+```mermaid
+graph TD
+    A[main] --> B[develop]
+    B --> C[feature/login]
+    B --> D[feature/payment]
+    B --> E[release/v1.0]
+    A --> F[hotfix/bug]
+    
+    C --> B
+    D --> B
+    B --> E
+    E --> A
+    F --> A
+```
+
+---
+
+#### 远程协作速查
+
+| 操作 | 命令 | 说明 |
+|:---|:---|:---|
+| 查看远程 | `git remote -v` | 显示远程仓库地址 |
+| 添加远程 | `git remote add origin <url>` | 关联远程仓库 |
+| 获取更新 | `git fetch origin` | 不合并 |
+| 拉取并合并 | `git pull origin main` | fetch + merge |
+| 拉取并变基 | `git pull --rebase origin main` | fetch + rebase |
+| 推送分支 | `git push origin main` | 推送更改 |
+| 首次推送 | `git push -u origin main` | 设置上游 |
+| 安全强推 | `git push --force-with-lease` | 覆盖远程 |
+
+---
+
+#### 查看历史速查
+
+```
+git log
+├── 简洁模式 → --oneline
+├── 图形化   → --graph --oneline --all
+├── 按作者   → --author="name"
+├── 按时间   → --since="2 weeks ago"
+└── 按文件   → <file>
+```
+
+**常用组合**：
+
+```bash
+git log --oneline --graph --all          # 完整历史图
+git log --oneline -10                    # 最近 10 条
+git log --since="2026-01-01" --until="2026-03-20"
+git log --author="hjs" --oneline
+git log --follow src/file.js             # 文件完整历史
+```
+
+---
+
+#### 故障排查速查
+
+| 问题 | 命令 | 说明 |
+|:---|:---|:---|
+| 误删分支 | `git reflog` + `git switch -c` | 恢复分支 |
+| 错误 rebase | `git reset --hard HEAD@{1}` | 恢复原状 |
+| 合并冲突 | `git mergetool` | 图形化解决 |
+| 查找 Bug | `git bisect start` | 二分查找 |
+| 查看操作历史 | `git reflog` | 所有操作记录 |
+| 清理大文件 | `git gc --aggressive` | 垃圾回收 |
+
+---
+
+#### 高频命令 Top 20
+
+```
+┌────────────────────────────────────────────────────┐
+│ 排名 │ 命令              │ 使用频率 │ 场景        │
+├──────┼───────────────────┼──────────┼─────────────┤
+│  1   │ git status        │ ⭐⭐⭐⭐⭐  │ 查看状态    │
+│  2   │ git add .         │ ⭐⭐⭐⭐⭐  │ 暂存文件    │
+│  3   │ git commit -m ""  │ ⭐⭐⭐⭐⭐  │ 提交        │
+│  4   │ git pull          │ ⭐⭐⭐⭐   │ 同步代码    │
+│  5   │ git push          │ ⭐⭐⭐⭐   │ 推送        │
+│  6   │ git log --oneline │ ⭐⭐⭐⭐   │ 查看历史    │
+│  7   │ git switch        │ ⭐⭐⭐⭐   │ 切换分支    │
+│  8   │ git branch        │ ⭐⭐⭐    │ 查看分支    │
+│  9   │ git diff          │ ⭐⭐⭐    │ 查看差异    │
+│  10  │ git merge         │ ⭐⭐⭐    │ 合并分支    │
+│  11  │ git checkout      │ ⭐⭐⭐    │ 切换（旧）  │
+│  12  │ git restore       │ ⭐⭐⭐    │ 恢复文件    │
+│  13  │ git reset         │ ⭐⭐     │ 撤销提交    │
+│  14  │ git rebase        │ ⭐⭐     │ 变基        │
+│  15  │ git stash         │ ⭐⭐     │ 暂存更改    │
+│  16  │ git fetch         │ ⭐⭐     │ 获取远程    │
+│  17  │ git show          │ ⭐⭐     │ 查看详情    │
+│  18  │ git tag           │ ⭐       │ 标签管理    │
+│  19  │ git reflog        │ ⭐       │ 恢复操作    │
+│  20  │ git clone         │ ⭐       │ 克隆仓库    │
+└────────────────────────────────────────────────────┘
+```
+
+---
 
 ### A.1 基础操作
 
