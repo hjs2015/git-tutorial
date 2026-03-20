@@ -2,7 +2,81 @@
 
 > 📘 **最系统、最详细的 Git 学习指南**  
 > 覆盖「零基础入门 → 核心原理 → 日常操作 → 企业级协作 → 故障排查」完整路径  
-> **版本**: v5.0 | **更新时间**: 2026-03-21 | **字数**: ~80,000
+> **版本**: v5.1 | **更新时间**: 2026-03-21 | **字数**: ~95,000  
+> **Git 版本要求**: 建议 Git 2.23+（部分新命令需要）
+
+---
+
+## 📋 版本兼容性说明
+
+<details>
+<summary>📌 点击展开版本兼容性说明</summary>
+
+本教程中的命令按 Git 版本兼容性分类：
+
+### 命令版本标识
+
+| 标识 | 说明 | 建议 |
+|:---|:---|:---|
+| **全部** | 所有 Git 版本支持 | ✅ 安全使用 |
+| **2.23+** | Git 2.23 及以上版本 | ⚠️ 检查版本 |
+| **2.0+** | Git 2.0 及以上版本 | ⚠️ 检查版本 |
+
+### 检查 Git 版本
+
+```bash
+git --version
+```
+
+**示例输出**：
+```bash
+$ git --version
+git version 2.43.0
+```
+
+**版本过低怎么办？**
+
+**Ubuntu/Debian**：
+```bash
+sudo add-apt-repository ppa:git-core/ppa
+sudo apt update
+sudo apt install git
+```
+
+**CentOS/RHEL**：
+```bash
+sudo yum install https://repo.ius.io/ius-release-el7.rpm
+sudo yum install git236
+```
+
+**macOS**：
+```bash
+brew install git
+```
+
+**Windows**：
+```
+访问：https://git-scm.com/download/win
+下载并安装最新版
+```
+
+### 现代命令 vs 传统命令
+
+本教程优先使用现代命令（语义更清晰），同时提供传统命令作为备选：
+
+| 功能 | 现代命令（2.23+） | 传统命令（全部） |
+|:---|:---|:---|
+| 切换分支 | `git switch <branch>` | `git checkout <branch>` |
+| 创建并切换 | `git switch -c <branch>` | `git checkout -b <branch>` |
+| 恢复文件 | `git restore <file>` | `git checkout -- <file>` |
+| 从暂存区恢复 | `git restore --staged <file>` | `git reset HEAD <file>` |
+
+**建议**：
+- Git 2.23+ 用户：使用现代命令
+- 低版本用户：使用传统命令
+- 团队开发：统一命令风格
+
+</details>
 
 ---
 
@@ -1640,6 +1714,15 @@ git diff --color
 
 
 ## 第 3 章 分支管理
+
+> ⚠️ **版本提示**：本章部分命令需要 Git 2.23+
+> 
+> 检查版本：`git --version`
+> 
+> - **现代命令**（2.23+）：`git switch`, `git restore` - 语义更清晰
+> - **传统命令**（全部）：`git checkout`, `git reset` - 兼容所有版本
+> 
+> 本教程优先使用现代命令，同时提供传统命令备选
 
 ### 3.1 分支概念详解
 
@@ -3948,6 +4031,169 @@ git push origin main develop --tags
 
 ---
 
+### 7.3 企业级分支命名规范
+
+#### 分支类型与命名规则
+
+| 分支类型 | 命名格式 | 来源分支 | 合并到 | 说明 |
+|:---|:---|:---|:---|:---|
+| **功能分支** | `feature/<功能描述>` | develop | develop | 新功能开发 |
+| **修复分支** | `bugfix/<问题描述>` | develop | develop | Bug 修复 |
+| **预发布分支** | `release/<版本号>` | develop | main + develop | 发布准备 |
+| **热修复分支** | `hotfix/<问题描述>` | main | main + develop | 线上紧急修复 |
+| **实验分支** | `experiment/<实验名称>` | 任意 | 不合并 | 技术实验 |
+
+#### 命名示例
+
+**功能分支**：
+```bash
+feature/user-login          # 用户登录功能
+feature/payment-gateway     # 支付网关集成
+feature/user-profile-page   # 用户资料页面
+```
+
+**修复分支**：
+```bash
+bugfix/fix-login-error      # 修复登录错误
+bugfix/issue-123            # 修复 Issue #123
+bugfix/memory-leak          # 修复内存泄漏
+```
+
+**预发布分支**：
+```bash
+release/v1.0.0              # 1.0.0 版本发布
+release/v2.1.0-beta         # 2.1.0 测试版
+```
+
+**热修复分支**：
+```bash
+hotfix/fix-production-crash  # 修复线上崩溃
+hotfix/security-patch        # 安全补丁
+```
+
+#### 分支命名最佳实践
+
+✅ **推荐**：
+- 使用小写字母和连字符：`feature/user-login`
+- 简洁明了：`bugfix/login-error`
+- 包含 Issue 编号：`feature/GH-123-add-payment`
+- 使用动词开头：`fix/`, `add/`, `update/`
+
+❌ **避免**：
+- 中文命名：`feature/用户登录` ❌
+- 下划线分隔：`feature/user_login` ❌
+- 过于冗长：`feature/add-new-user-login-functionality` ❌
+- 无意义命名：`feature/test1`, `branch/abc` ❌
+
+---
+
+### 7.4 PR/MR 提交流程与模板
+
+#### 完整 PR 流程
+
+**1. 创建功能分支**：
+```bash
+git switch develop
+git pull origin develop
+git switch -c feature/user-auth
+```
+
+**2. 开发并提交**：
+```bash
+# ... 开发功能 ...
+git add .
+git commit -m "feat(auth): add user login"
+git push -u origin feature/user-auth
+```
+
+**3. 创建 Pull Request**
+
+访问 GitHub/GitLab，点击 "New Pull Request"
+
+**PR 模板**：
+```markdown
+## 📝 变更说明
+
+**需求链接**: [JIRA-123](https://jira.example.com/browse/JIRA-123)
+**需求描述**: 实现用户登录功能，支持邮箱和密码登录
+
+## 🎯 变更类型
+
+- [x] ✨ 新功能
+- [ ] 🐛 Bug 修复
+- [ ] 📝 文档更新
+- [ ] ♻️ 代码重构
+- [ ] ⚡ 性能优化
+- [ ] 🔒 安全修复
+
+## 🧪 测试清单
+
+- [x] 单元测试已添加
+- [x] 集成测试通过
+- [x] 手动测试完成
+- [ ] E2E 测试（如适用）
+
+## 📸 截图（如适用）
+
+登录页面：
+![登录页面](screenshot.png)
+
+## ✅ 自查清单
+
+- [x] 代码符合团队规范
+- [x] 无调试代码（console.log 等）
+- [x] 提交信息符合约定式规范
+- [x] 已更新相关文档
+- [x] 无安全漏洞
+
+## 📋 测试步骤
+
+1. 访问 `/login` 页面
+2. 输入正确的邮箱和密码
+3. 点击登录按钮
+4. 验证跳转到首页
+
+## 🔗 相关链接
+
+- 需求文档：[链接](https://confluence.example.com/login)
+- 设计稿：[Figma](https://figma.com/file/xxx)
+```
+
+**4. 代码审查（Code Review）**
+
+团队成员审查代码，提出意见：
+
+```
+@developer 张三：
+1. 第 23 行：建议添加错误处理
+2. 第 45 行：这个逻辑可以提取为函数
+3. 整体结构不错 👍
+```
+
+**5. 修改并提交**
+
+```bash
+# 根据审查意见修改
+git add .
+git commit -m "refactor(auth): address code review comments"
+git push
+```
+
+**6. 合并 PR**
+
+审查通过后，点击 "Merge Pull Request"
+
+**7. 清理分支**
+
+```bash
+git switch develop
+git pull origin develop
+git branch -d feature/user-auth
+git push origin --delete feature/user-auth
+```
+
+---
+
 #### Git Flow 工具
 
 ```bash
@@ -4456,6 +4702,111 @@ exit 0
 
 ---
 
+### 8.1.3 Git Hooks 完整示例与测试
+
+#### Pre-commit 钩子：完整测试流程
+
+**创建钩子文件**：
+```bash
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+# .git/hooks/pre-commit
+
+echo "🔍 运行提交前检查..."
+
+# 1. 检查是否有调试代码
+if git diff --cached | grep -E "console\.log|print\(|debugger"; then
+    echo "❌ 发现调试代码，请移除后重新提交"
+    exit 1
+fi
+
+# 2. 运行代码格式化检查
+echo "检查代码格式..."
+
+# 3. 运行单元测试
+echo "运行单元测试..."
+
+echo "✅ 所有检查通过"
+exit 0
+EOF
+
+# 添加执行权限
+chmod +x .git/hooks/pre-commit
+```
+
+**测试 1：正常提交（钩子通过）**
+
+```bash
+$ git add .
+$ git commit -m "feat: add user login"
+
+# 输出：
+🔍 运行提交前检查...
+检查代码格式...
+运行单元测试...
+✅ 所有检查通过
+[main 8f3a2b1] feat: add user login
+ 2 files changed, 45 insertions(+)
+```
+
+**逐行解读**：
+- `🔍 运行提交前检查...` - 钩子开始执行
+- `检查代码格式...` - 运行代码格式化检查
+- `运行单元测试...` - 运行单元测试
+- `✅ 所有检查通过` - 所有检查通过，允许提交
+- `[main 8f3a2b1] feat: add user login` - 提交成功，显示提交哈希
+
+**测试 2：发现调试代码（钩子阻止）**
+
+```bash
+$ echo "console.log('debug')" >> app.js
+$ git add app.js
+$ git commit -m "feat: add debug logging"
+
+# 输出：
+🔍 运行提交前检查...
+❌ 发现调试代码，请移除后重新提交
+```
+
+**解读**：
+- 钩子检测到 `console.log` 调试代码
+- 返回非零退出码（exit 1），阻止提交
+- 需要移除调试代码后才能提交
+
+**修复并重新提交**：
+```bash
+$ # 移除调试代码
+$ git add app.js
+$ git commit -m "feat: add logging"
+
+# 输出：
+🔍 运行提交前检查...
+检查代码格式...
+运行单元测试...
+✅ 所有检查通过
+[main 9c4b3d2] feat: add logging
+```
+
+**测试 3：提交信息格式错误**
+
+```bash
+$ git commit -m "fixed some stuff"
+
+# 输出：
+❌ 提交信息不符合 Conventional Commits 规范
+
+格式：<type>(<scope>): <subject>
+
+示例：feat(auth): add user login
+```
+
+**解读**：
+- 提交信息不符合约定式提交规范
+- 提示正确的格式和示例
+- 需要修改提交信息格式
+
+---
+
 ### 8.2 Husky：现代化 Git 钩子管理
 
 #### 安装 Husky（Node.js 项目）
@@ -4726,6 +5077,131 @@ git reset --hard origin/main
 
 ---
 
+### 9.6 可视化工具配置
+
+#### VS Code 内置 Git 工具
+
+**1. 配置 VS Code 为默认编辑器**：
+```bash
+git config --global core.editor "code --wait"
+```
+
+**2. 配置 VS Code 为 mergetool**：
+```bash
+git config --global merge.tool vscode
+git config --global mergetool.vscode.cmd "code --wait \$MERGED"
+git config --global diff.tool vscode
+git config --global difftool.vscode.cmd "code --wait --diff \$LOCAL \$REMOTE"
+```
+
+**3. 使用 VS Code 解决冲突**
+
+**步骤 1：遇到冲突时**
+```bash
+$ git merge feature
+CONFLICT (content): Merge conflict in app.js
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+**步骤 2：打开 VS Code**
+```bash
+code app.js
+```
+
+**步骤 3：在 VS Code 中解决冲突**
+
+VS Code 会高亮显示冲突区域：
+
+```javascript
+<<<<<<< HEAD
+function login(user, password) {
+  // 当前分支的代码
+  return authenticate(user, password);
+}
+=======
+function login(user, password, token) {
+  // 合并分支的代码
+  return authenticateWithToken(user, password, token);
+}
+>>>>>>> feature
+```
+
+**步骤 4：选择保留的代码**
+
+点击冲突区域上方的操作按钮：
+- `Accept Current Change` - 保留当前分支
+- `Accept Incoming Change` - 保留合并分支
+- `Accept Both Changes` - 保留两者
+- `Compare Changes` - 对比差异
+
+**步骤 5：保存并提交**
+```bash
+git add app.js
+git commit -m "merge: resolve conflict in app.js"
+```
+
+---
+
+#### GitKraken（推荐新手）
+
+**安装**：
+```
+访问：https://www.gitkraken.com/
+下载：对应系统版本
+```
+
+**主要功能**：
+- ✅ 可视化分支图
+- ✅ 拖拽合并
+- ✅ 一键回滚
+- ✅ 冲突解决向导
+- ✅ 集成 GitHub/GitLab
+
+**适用场景**：
+- 新手学习 Git 原理
+- 查看复杂分支历史
+- 可视化解决冲突
+
+---
+
+#### SourceTree（免费）
+
+**安装**：
+```
+访问：https://www.sourcetreeapp.com/
+下载：对应系统版本
+```
+
+**主要功能**：
+- ✅ 免费使用
+- ✅ 可视化提交历史
+- ✅ 分支管理
+- ✅ 内置差异工具
+
+**适用场景**：
+- 日常 Git 操作
+- 查看提交历史
+- 分支管理
+
+---
+
+#### 命令行 vs 图形工具
+
+| 场景 | 推荐工具 | 理由 |
+|:---|:---|:---|
+| **学习 Git 原理** | 命令行 | 理解底层机制 |
+| **日常开发** | 命令行 | 快速、灵活 |
+| **解决复杂冲突** | VS Code/GitKraken | 可视化对比 |
+| **查看历史记录** | SourceTree/GitKraken | 图形化展示 |
+| **团队协作** | 命令行 | 统一流程 |
+
+**建议**：
+- 新手先用命令行学习基础
+- 熟练后结合图形工具提高效率
+- 复杂冲突使用可视化工具
+
+---
+
 ## 第 10 章 高频常见问题解决方案
 
 ### 10.1 日常开发问题
@@ -4916,65 +5392,111 @@ git rebase --continue
 
 ## 附录 A：命令速查表
 
-### A.1 基础命令
+### A.1 基础操作
 
-| 命令 | 说明 | 示例 |
-|:---|:---|:---|
-| `git init` | 初始化仓库 | `git init` |
-| `git clone` | 克隆仓库 | `git clone <url>` |
-| `git status` | 查看状态 | `git status` |
-| `git add` | 添加到暂存区 | `git add .` |
-| `git commit` | 提交 | `git commit -m "msg"` |
-| `git push` | 推送 | `git push origin main` |
-| `git pull` | 拉取 | `git pull origin main` |
-| `git fetch` | 获取 | `git fetch origin` |
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git init` | 初始化仓库 | 全部 | `git init` |
+| `git clone <url>` | 克隆仓库 | 全部 | `git clone https://github.com/user/repo.git` |
+| `git status` | 查看状态 | 全部 | `git status -s`（简短格式） |
+| `git add <file>` | 添加到暂存区 | 全部 | `git add .`（全部） |
+| `git commit -m "msg"` | 提交 | 全部 | `git commit -m "feat: add login"` |
+| `git commit --amend` | 修改上次提交 | 全部 | `git commit --amend -m "new msg"` |
 
----
+### A.2 撤销操作
 
-### A.2 分支命令
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git restore <file>` | 恢复工作区文件 | 2.23+ | `git restore app.js` |
+| `git checkout -- <file>` | 恢复工作区（传统） | 全部 | `git checkout -- app.js` |
+| `git restore --staged <file>` | 从暂存区恢复 | 2.23+ | `git restore --staged app.js` |
+| `git reset HEAD <file>` | 从暂存区恢复（传统） | 全部 | `git reset HEAD app.js` |
+| `git reset --soft HEAD~1` | 撤销提交，保留更改 | 全部 | `git reset --soft HEAD~1` |
+| `git reset --mixed HEAD~1` | 撤销提交，保留暂存 | 全部 | `git reset HEAD~1`（默认） |
+| `git reset --hard HEAD~1` | 彻底撤销提交 | 全部 | `git reset --hard HEAD~1` ⚠️ |
+| `git revert <commit>` | 回滚提交（安全） | 全部 | `git revert abc123` |
+| `git clean -fd` | 清理未跟踪文件 | 全部 | `git clean -fd` ⚠️ |
 
-| 命令 | 说明 | 示例 |
-|:---|:---|:---|
-| `git branch` | 查看分支 | `git branch` |
-| `git checkout` | 切换分支 | `git checkout main` |
-| `git switch` | 切换分支（新） | `git switch main` |
-| `git merge` | 合并分支 | `git merge feature` |
-| `git rebase` | 变基 | `git rebase main` |
-| `git branch -d` | 删除分支 | `git branch -d feature` |
+### A.3 分支管理
 
----
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git branch` | 查看分支 | 全部 | `git branch -a`（含远程） |
+| `git branch <name>` | 创建分支 | 全部 | `git branch feature/login` |
+| `git switch <branch>` | 切换分支 | 2.23+ | `git switch main` |
+| `git switch -c <branch>` | 创建并切换 | 2.23+ | `git switch -c feature` |
+| `git checkout <branch>` | 切换分支（传统） | 全部 | `git checkout main` |
+| `git checkout -b <branch>` | 创建并切换（传统） | 全部 | `git checkout -b feature` |
+| `git merge <branch>` | 合并分支 | 全部 | `git merge --no-ff feature` |
+| `git rebase <branch>` | 变基 | 全部 | `git rebase main` |
+| `git rebase -i <commit>` | 交互式变基 | 全部 | `git rebase -i HEAD~3` |
+| `git cherry-pick <commit>` | 选择合并 | 全部 | `git cherry-pick abc123` |
+| `git branch -d <branch>` | 删除分支 | 全部 | `git branch -d feature` |
+| `git branch -D <branch>` | 强制删除 | 全部 | `git branch -D feature` |
 
-### A.3 查看命令
+### A.4 远程操作
 
-| 命令 | 说明 | 示例 |
-|:---|:---|:---|
-| `git log` | 查看日志 | `git log --oneline` |
-| `git diff` | 查看差异 | `git diff HEAD` |
-| `git show` | 查看详情 | `git show abc123` |
-| `git blame` | 查看每行作者 | `git blame file.py` |
-| `git reflog` | 查看引用日志 | `git reflog` |
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git remote -v` | 查看远程仓库 | 全部 | `git remote -v` |
+| `git remote add <name> <url>` | 添加远程 | 全部 | `git remote add origin https://...` |
+| `git fetch <remote>` | 获取远程 | 全部 | `git fetch origin` |
+| `git fetch --all` | 获取所有远程 | 全部 | `git fetch --all` |
+| `git pull <remote> <branch>` | 拉取并合并 | 全部 | `git pull origin main` |
+| `git pull --rebase` | 拉取并变基 | 全部 | `git pull --rebase origin main` |
+| `git push <remote> <branch>` | 推送 | 全部 | `git push origin main` |
+| `git push -u <remote> <branch>` | 推送并设置上游 | 全部 | `git push -u origin main` |
+| `git push --force` | 强制推送 | 全部 | `git push --force` ⚠️ |
+| `git push --force-with-lease` | 安全强制推送 | 全部 | `git push --force-with-lease` ✅ |
 
----
+### A.5 查看与比较
 
-### A.4 撤销命令
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git log` | 查看提交日志 | 全部 | `git log --oneline --graph` |
+| `git log --author=<name>` | 按作者过滤 | 全部 | `git log --author="John"` |
+| `git log --since="2 weeks ago"` | 按时间过滤 | 全部 | `git log --since="2 weeks ago"` |
+| `git diff` | 比较差异 | 全部 | `git diff HEAD` |
+| `git diff --staged` | 比较暂存区 | 全部 | `git diff --staged` |
+| `git show <commit>` | 查看提交详情 | 全部 | `git show abc123` |
+| `git blame <file>` | 查看每行作者 | 全部 | `git blame app.js` |
+| `git reflog` | 查看引用日志 | 全部 | `git reflog` |
+| `git shortlog` | 统计贡献 | 全部 | `git shortlog -sn` |
 
-| 命令 | 说明 | 示例 |
-|:---|:---|:---|
-| `git restore` | 恢复文件 | `git restore file.txt` |
-| `git reset` | 重置 | `git reset HEAD~1` |
-| `git revert` | 回滚提交 | `git revert abc123` |
-| `git clean` | 清理未跟踪文件 | `git clean -fd` |
+### A.6 标签操作
 
----
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git tag` | 查看标签 | 全部 | `git tag -l "v1.*"` |
+| `git tag <name>` | 创建轻量标签 | 全部 | `git tag v1.0.0` |
+| `git tag -a <name> -m "msg"` | 创建附注标签 | 全部 | `git tag -a v1.0.0 -m "release"` |
+| `git push origin <tag>` | 推送标签 | 全部 | `git push origin v1.0.0` |
+| `git push origin --tags` | 推送所有标签 | 全部 | `git push origin --tags` |
+| `git tag -d <name>` | 删除标签 | 全部 | `git tag -d v1.0.0` |
 
-### A.5 远程命令
+### A.7 高级操作
 
-| 命令 | 说明 | 示例 |
-|:---|:---|:---|
-| `git remote` | 查看远程 | `git remote -v` |
-| `git remote add` | 添加远程 | `git remote add origin <url>` |
-| `git push -u` | 推送并设置上游 | `git push -u origin main` |
-| `git fetch --all` | 获取所有 | `git fetch --all` |
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git stash` | 暂存更改 | 全部 | `git stash save "work in progress"` |
+| `git stash list` | 查看暂存列表 | 全部 | `git stash list` |
+| `git stash pop` | 恢复并删除暂存 | 全部 | `git stash pop` |
+| `git stash apply` | 恢复暂存 | 全部 | `git stash apply stash@{0}` |
+| `git bisect start` | 开始二分查找 | 全部 | `git bisect start` |
+| `git bisect good/bad` | 标记好坏 | 全部 | `git bisect good` |
+| `git bisect reset` | 重置二分查找 | 全部 | `git bisect reset` |
+| `git worktree add <path>` | 添加工作树 | 全部 | `git worktree add ../hotfix` |
+| `git submodule add <url>` | 添加子模块 | 全部 | `git submodule add https://...` |
+
+### A.8 故障排查
+
+| 命令 | 说明 | 版本 | 示例 |
+|:---|:---|:---|:---|
+| `git fsck` | 检查仓库完整性 | 全部 | `git fsck --full` |
+| `git gc` | 垃圾回收 | 全部 | `git gc --prune=now` |
+| `git prune` | 清理悬空对象 | 全部 | `git prune` |
+| `git reflog expire` | 过期引用日志 | 全部 | `git reflog expire --expire=now --all` |
+| `git filter-branch` | 重写历史 | 全部 | `git filter-branch --force ...` ⚠️ |
 
 ---
 
