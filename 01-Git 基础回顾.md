@@ -768,7 +768,9 @@ secrets/
 
 #### 常见语言的 .gitignore 示例
 
-**Node.js 项目**：
+<details>
+<summary>📦 Node.js 项目</summary>
+
 ```gitignore
 # 依赖
 node_modules/
@@ -788,7 +790,11 @@ logs/
 *.log
 ```
 
-**Python 项目**：
+</details>
+
+<details>
+<summary>🐍 Python 项目</summary>
+
 ```gitignore
 # 字节码
 __pycache__/
@@ -814,7 +820,11 @@ htmlcov/
 .env
 ```
 
-**Java 项目**：
+</details>
+
+<details>
+<summary>☕ Java 项目</summary>
+
 ```gitignore
 # 编译产物
 *.class
@@ -832,7 +842,11 @@ build/
 *.log
 ```
 
-**前端项目**：
+</details>
+
+<details>
+<summary>🌐 前端项目</summary>
+
 ```gitignore
 # 依赖
 node_modules/
@@ -853,7 +867,11 @@ yarn.lock
 .env.local
 ```
 
-**Unity 项目**：
+</details>
+
+<details>
+<summary>🎮 Unity 项目</summary>
+
 ```gitignore
 # Unity 生成的文件
 [Ll]ibrary/
@@ -870,6 +888,87 @@ yarn.lock
 .DS_Store
 Thumbs.db
 ```
+
+</details>
+
+<details>
+<summary>📱 更多语言模板</summary>
+
+**Go 项目**：
+```gitignore
+# 编译产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# 依赖
+vendor/
+
+# Go 工作区
+bin/
+pkg/
+```
+
+**Rust 项目**：
+```gitignore
+# 编译产物
+/target/
+**/*.rs.bk
+
+# Cargo.lock 可选（库项目建议提交）
+# Cargo.lock
+
+# 调试信息
+*.pdb
+```
+
+**C/C++ 项目**：
+```gitignore
+# 编译产物
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# 构建目录
+build/
+bin/
+obj/
+
+# IDE
+.idea/
+.vscode/
+*.swo
+*~
+```
+
+**Ruby 项目**：
+```gitignore
+# 依赖
+vendor/bundle/
+
+# 日志
+log/
+
+# 临时文件
+tmp/
+
+# .env
+.env
+```
+
+</details>
+
+**💡 提示**：
+- 点击标题展开/收起各语言模板
+- 更多语言模板：https://github.com/github/gitignore
+- 使用 `gitignore.io` 在线生成：https://www.toptal.com/developers/gitignore
 
 ---
 
@@ -1133,6 +1232,158 @@ $ git commit --amend -m "feat: add user login module"
 - 仅适用于**未推送**的提交
 - 已推送的提交修改后需要强制推送（`git push --force`）
 - 团队协作中谨慎使用，会改写历史
+
+---
+
+#### Conventional Commits 提交信息规范
+
+> 📝 **约定式提交**是一种简单而强大的提交信息规范，有助于生成变更日志、自动化版本号和团队协作。
+
+**基本格式**：
+
+```
+<type>(<scope>): <subject>
+
+[可选的正文]
+
+[可选的脚注]
+```
+
+**type 类型**：
+
+| 类型 | 说明 | 示例 |
+|:---|:---|:---|
+| `feat` | 新功能 | `feat: add user login` |
+| `fix` | Bug 修复 | `fix: resolve login timeout` |
+| `docs` | 文档更新 | `docs: update README` |
+| `style` | 代码格式（不影响功能） | `style: format code` |
+| `refactor` | 重构（非新功能非修复） | `refactor: simplify logic` |
+| `perf` | 性能优化 | `perf: improve query speed` |
+| `test` | 测试相关 | `test: add unit tests` |
+| `chore` | 构建工具/依赖管理 | `chore: update dependencies` |
+| `ci` | CI/CD 配置 | `ci: add GitHub Actions` |
+| `build` | 构建系统 | `build: update webpack config` |
+
+**scope 范围**（可选）：
+
+```bash
+feat(auth): add user login          # 认证模块
+fix(api): resolve timeout issue     # API 模块
+docs(readme): update installation   # README 文档
+test(utils): add helper tests       # 工具函数测试
+```
+
+**subject 主题**：
+
+- ✅ 使用祈使句：`add` 而非 `added` 或 `adds`
+- ✅ 首字母小写
+- ✅ 结尾不加句号
+- ✅ 简洁明了（50 字符以内）
+
+**完整示例**：
+
+```bash
+# 简单格式
+git commit -m "feat: add user login"
+git commit -m "fix: resolve login timeout"
+
+# 完整格式（多行提交信息）
+git commit -m "feat(auth): add user login with OAuth2
+
+- Implement OAuth2 authentication flow
+- Add login and logout endpoints
+- Update user model with provider field
+
+Closes #123"
+
+# BREAKING CHANGE 标记（重大变更）
+git commit -m "feat(api): migrate to GraphQL
+
+BREAKING CHANGE: REST API v1 is deprecated, use GraphQL instead
+
+- Remove all REST endpoints
+- Add GraphQL schema and resolvers
+- Update documentation"
+```
+
+**工具支持**：
+
+```bash
+# commitlint - 提交信息检查
+npm install -g @commitlint/cli
+echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
+
+# husky - Git hooks 管理（自动检查提交信息）
+npm install husky --save-dev
+npx husky install
+npx husky add .husky/commit-msg 'npx commitlint --edit $1'
+
+# commitizen - 交互式提交
+npm install -g commitizen
+commitizen init cz-conventional-changelog --save-dev --save-exact
+git cz  # 替代 git commit，交互式输入
+```
+
+**自动化版本控制**：
+
+```bash
+# semantic-release - 根据提交信息自动发布
+npm install -g semantic-release
+
+# 自动计算版本号：
+# - feat → minor version (1.1.0 → 1.2.0)
+# - fix → patch version (1.1.0 → 1.1.1)
+# - BREAKING CHANGE → major version (1.1.0 → 2.0.0)
+
+# 自动生成变更日志
+# 自动发布到 npm/GitHub
+```
+
+**团队收益**：
+
+- ✅ 自动生成变更日志
+- ✅ 自动化版本号管理
+- ✅ 清晰的提交历史
+- ✅ 便于代码审查
+- ✅ 支持自动化发布
+
+---
+
+**实际工作流示例**：
+
+```bash
+# 1. 开发新功能
+git switch -c feature/user-auth
+# ... 开发 ...
+git commit -m "feat(auth): add user login"
+
+# 2. 修复 Bug
+git switch -c bugfix/login-error
+# ... 修复 ...
+git commit -m "fix(auth): resolve login timeout issue
+
+- Increase timeout from 5s to 30s
+- Add retry logic for network errors
+- Update error messages
+
+Fixes #456"
+
+# 3. 代码审查后合并
+git switch main
+git merge --no-ff feature/user-auth
+git branch -d feature/user-auth
+git push origin main
+```
+
+**提交信息检查清单**：
+
+- [ ] 使用了正确的 type（feat/fix/docs 等）
+- [ ] subject 使用祈使句（add 而非 added）
+- [ ] subject 首字母小写
+- [ ] subject 结尾无句号
+- [ ] 长度不超过 50 字符
+- [ ] 如有必要，添加正文说明变更原因
+- [ ] 关联 Issue 编号（如 `Closes #123`）
 
 ---
 
@@ -1632,25 +1883,184 @@ abc123de is the first bad commit
 
 #### 自动化 bisect
 
+**使用脚本自动测试**：
+
 ```bash
-# 使用脚本自动测试
+# 使用脚本自动运行测试
 git bisect run ./test-script.sh
 ```
 
-**test-script.sh**：
+**test-script.sh 示例**：
+
+<details>
+<summary>📝 查看完整脚本示例</summary>
+
 ```bash
 #!/bin/bash
+# 自动化测试脚本
+# 返回 0 表示当前提交是"好"的
+# 返回 1-127 表示当前提交是"坏"的
+# 返回 125 表示跳过当前提交
+
+# 1. 构建项目
+make clean
+make
+
+# 2. 运行测试
 make test
-# 返回 0 表示好，非 0 表示坏
+
+# 3. 根据测试结果返回
+# make test 成功返回 0，失败返回非 0
+```
+
+**Python 脚本示例**：
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+自动化测试脚本
+返回 0 = 好，1 = 坏，125 = 跳过
+"""
+import subprocess
+import sys
+
+try:
+    # 运行测试
+    result = subprocess.run(['pytest', 'tests/'], 
+                          capture_output=True, 
+                          text=True,
+                          timeout=300)
+    
+    if result.returncode == 0:
+        print("✅ 测试通过")
+        sys.exit(0)  # 好
+    else:
+        print("❌ 测试失败")
+        print(result.stdout)
+        print(result.stderr)
+        sys.exit(1)  # 坏
+        
+except subprocess.TimeoutExpired:
+    print("⏭️ 测试超时，跳过")
+    sys.exit(125)  # 跳过
+except Exception as e:
+    print(f"❌ 错误：{e}")
+    sys.exit(1)  # 坏
+```
+
+</details>
+
+**⚠️ 重要配置步骤**：
+
+```bash
+# 1. 创建脚本后，必须添加执行权限
+chmod +x test-script.sh
+
+# 2. 验证脚本可执行
+./test-script.sh
+
+# 3. 运行 bisect 自动化
+git bisect run ./test-script.sh
+
+# 4. 查看 bisect 日志
+git bisect log > bisect-results.txt
+
+# 5. 重置 bisect
+git bisect reset
+```
+
+**返回值说明**：
+
+| 返回值 | 含义 | 说明 |
+|:---:|:---|:---|
+| `0` | ✅ 好 | 当前提交测试通过 |
+| `1-127` | ❌ 坏 | 当前提交测试失败 |
+| `125` | ⏭️ 跳过 | 当前提交无法测试（如构建失败） |
+
+**常见错误及解决方案**：
+
+```bash
+# 错误 1: Permission denied
+$ git bisect run ./test-script.sh
+# error: cannot run test-script.sh: Permission denied
+
+# 解决方案：添加执行权限
+chmod +x test-script.sh
+
+# 错误 2: 脚本路径错误
+$ git bisect run ./test-script.sh
+# error: cannot run ./test-script.sh: No such file or directory
+
+# 解决方案：使用绝对路径
+git bisect run /full/path/to/test-script.sh
+
+# 错误 3: 脚本返回错误
+$ git bisect run ./test-script.sh
+# bisect found  abc123 是第一个坏提交
+
+# 解决方案：检查脚本逻辑，确保返回值正确
+```
+
+**完整工作流示例**：
+
+```bash
+# 1. 发现问题
+$ git log --oneline
+abc123 (HEAD -> main) Fix login bug
+def456 Add user profile
+789abc Add login feature  # 从这里开始有问题
+
+# 2. 启动 bisect
+$ git bisect start
+$ git bisect bad HEAD           # 当前版本有问题
+$ git bisect good 789abc        # 这个版本正常
+
+# 3. 自动化测试
+$ chmod +x test-script.sh
+$ git bisect run ./test-script.sh
+
+# 输出示例：
+# bisect run started
+# starting bisect run
+# running './test-script.sh'
+# ... (自动测试多个提交)
+# bisect found def456 is the first bad commit
+
+# 4. 查看结果
+$ git bisect log
+# git bisect log
+# status: found first bad commit
+# # bad: [abc123] Fix login bug
+# # good: [789abc] Add login feature
+# # bad: [def456] Add user profile
+# # run:  bisect run './test-script.sh'
+
+# 5. 保存结果
+$ git bisect log > bisect-results.txt
+
+# 6. 重置
+$ git bisect reset
+Previous HEAD position was 789abc Add login feature
+Switched to branch 'main'
 ```
 
 ---
 
 #### 适用场景
 
-- 🐛 定位引入 bug 的提交
-- 🐛 回归测试
-- 🐛 性能问题排查
+- 🐛 **定位引入 bug 的提交**：快速找到哪个提交引入了问题
+- 🐛 **回归测试**：验证历史版本是否正常工作
+- 🐛 **性能问题排查**：定位性能下降的提交
+- 🔍 **代码审查辅助**：了解特定功能的引入历史
+
+**bisect 最佳实践**：
+
+- ✅ 使用自动化测试脚本，提高效率
+- ✅ 确保测试脚本快速（<30 秒）
+- ✅ 处理构建失败的情况（返回 125 跳过）
+- ✅ 保存 bisect 日志供后续分析
+- ✅ 在测试分支上运行，避免影响主分支
 
 ---
 
@@ -1747,33 +2157,148 @@ git diff --color
 
 #### 分支的工作原理
 
-```
-Git 分支本质是一个指向提交的指针：
+**Mermaid 可视化流程图**：
 
-commit-1 → commit-2 → commit-3 → commit-4
-           ↑
-        main (当前分支)
-        
-创建新分支 testing：
-
-commit-1 → commit-2 → commit-3 → commit-4
-           ↑              ↑
-        main          testing
-        
-在 testing 分支提交新 commit：
-
-commit-1 → commit-2 → commit-3 → commit-4
-           ↑              ↑
-        main          testing → commit-5
+```mermaid
+graph LR
+    subgraph 初始状态
+        C1[commit-1] --> C2[commit-2]
+        C2 --> C3[commit-3]
+        C3 --> C4[commit-4]
+        main1[main 分支] --> C4
+    end
+    
+    subgraph 创建 testing 分支
+        C1b[commit-1] --> C2b[commit-2]
+        C2b --> C3b[commit-3]
+        C3b --> C4b[commit-4]
+        main2[main 分支] --> C4b
+        testing1[testing 分支] --> C4b
+    end
+    
+    subgraph testing 分支提交新 commit
+        C1c[commit-1] --> C2c[commit-2]
+        C2c --> C3c[commit-3]
+        C3c --> C4c[commit-4]
+        C4c --> C5[commit-5]
+        main3[main 分支] --> C4c
+        testing2[testing 分支] --> C5
+    end
+    
+    初始状态 --> 创建 testing 分支
+    创建 testing 分支 --> testing 分支提交新 commit
+    
+    style main1 fill:#4CAF50,color:#fff
+    style main2 fill:#4CAF50,color:#fff
+    style main3 fill:#4CAF50,color:#fff
+    style testing1 fill:#2196F3,color:#fff
+    style testing2 fill:#2196F3,color:#fff
 ```
 
 **核心要点**：
-- 分支是指针，指向某个提交
-- 切换分支 = 移动指针
-- 提交 = 当前分支指针向前移动
-- 分支之间默认互不影响
+- 🎯 **分支是指针**：指向某个提交对象
+- 🔄 **切换分支**：移动 HEAD 指针到不同分支
+- ➕ **提交**：当前分支指针向前移动
+- 🚫 **分支独立**：分支之间默认互不影响
+- 💾 **轻量级**：创建分支只是创建指针，几乎不占空间
+
+**实际操作演示**：
+
+```bash
+# 1. 初始状态：main 指向 commit-4
+$ git log --oneline
+abc1234 (HEAD -> main) commit-4
+def5678 commit-3
+789abcd commit-2
+123efgh commit-1
+
+# 2. 创建 testing 分支（指针指向相同位置）
+$ git branch testing
+$ git log --oneline
+abc1234 (HEAD -> main, testing) commit-4
+
+# 3. 切换到 testing 分支
+$ git switch testing
+Switched to branch 'testing'
+
+# 4. 在 testing 分支提交新 commit
+$ echo "new feature" >> feature.txt
+$ git add .
+$ git commit -m "feat: add new feature"
+[testing 567xyz] feat: add new feature
+
+# 5. 查看分支状态
+$ git log --oneline
+567xyz (HEAD -> testing) feat: add new feature
+abc1234 (main) commit-4
+
+# 6. 切换回 main 分支
+$ git switch main
+Switched to branch 'main'
+
+# 7. main 分支看不到 testing 的提交
+$ git log --oneline
+abc1234 (HEAD -> main) commit-4
+```
 
 ---
+
+#### 企业级分支命名规范
+
+> 💼 **分支命名的重要性**
+> 
+> 统一的命名规范可以提高团队协作效率，便于代码审查和版本管理。
+
+**分支类型与命名规则**：
+
+| 分支类型 | 命名格式 | 示例 | 说明 |
+|:---|:---|:---|:---|
+| **功能分支** | `feature/<功能描述>` | `feature/user-login` | 新功能开发 |
+| **修复分支** | `bugfix/<问题描述>` | `bugfix/login-error` | Bug 修复 |
+| **热修复分支** | `hotfix/<问题描述>` | `hotfix/production-crash` | 线上紧急修复 |
+| **发布分支** | `release/<版本号>` | `release/v1.0.0` | 发布准备 |
+| **实验分支** | `experiment/<实验名称>` | `experiment/new-ui` | 技术实验 |
+
+**命名最佳实践**：
+
+✅ **推荐**：
+- 使用小写字母和连字符：`feature/user-login`
+- 简洁明了：`bugfix/login-error`
+- 包含 Issue 编号：`feature/GH-123-add-payment`
+- 使用动词开头：`add-`, `fix-`, `update-`
+
+❌ **避免**：
+- 中文命名：`feature/用户登录` ❌
+- 下划线分隔：`feature/user_login` ❌
+- 过于冗长：`feature/add-new-user-login-functionality` ❌
+- 无意义命名：`feature/test1`, `branch/abc` ❌
+
+**实际案例**：
+
+```bash
+# 功能开发
+git switch -c feature/user-auth          # 用户认证功能
+git switch -c feature/payment-gateway    # 支付网关集成
+git switch -c feature/GH-456-search      # GitHub Issue #456
+
+# Bug 修复
+git switch -c bugfix/login-timeout     # 登录超时问题
+git switch -c bugfix/issue-789         # Issue #789
+
+# 紧急修复
+git switch -c hotfix/production-crash  # 线上崩溃
+git switch -c hotfix/security-patch    # 安全补丁
+
+# 版本发布
+git switch -c release/v1.0.0           # 1.0.0 版本
+git switch -c release/v2.1.0-beta      # 2.1.0 测试版
+```
+
+**团队协作建议**：
+1. 📋 在 PR/MR 描述中说明分支用途
+2. 🔗 关联 Issue 编号（如 `feature/GH-123`）
+3. 🧹 合并后及时删除分支
+4. 📝 遵循团队统一的命名规范
 
 ### 3.2 查看分支
 
@@ -3928,12 +4453,57 @@ chmod +x .git/hooks/pre-commit
 > **Git Flow** 是最经典的企业级工作流，适合有固定发布周期的项目
 
 **分支结构**：
+
+```mermaid
+gitGraph
+    commit id: "初始提交"
+    branch develop
+    checkout develop
+    commit id: "开发开始"
+    
+    branch feature/login
+    checkout feature/login
+    commit id: "登录功能"
+    commit id: "登录功能"
+    
+    checkout develop
+    merge feature/login id: "合并登录"
+    branch feature/payment
+    checkout feature/payment
+    commit id: "支付功能"
+    
+    checkout develop
+    merge feature/payment id: "合并支付"
+    
+    branch release/v1.0
+    checkout release/v1.0
+    commit id: "预发布测试"
+    
+    checkout main
+    merge release/v1.0 id: "发布 v1.0" tag: "v1.0"
+    
+    checkout develop
+    merge release/v1.0 id: "同步到开发"
+    
+    checkout main
+    branch hotfix/bug-fix
+    checkout hotfix/bug-fix
+    commit id: "紧急修复"
+    
+    checkout main
+    merge hotfix/bug-fix id: "热修复" tag: "v1.0.1"
+    
+    checkout develop
+    merge hotfix/bug-fix id: "同步修复"
 ```
-main (生产环境)
+
+**文字说明**：
+```
+main (生产环境) ← 随时可部署
   ↑
-release/v1.0 (预发布)
+release/v1.0 (预发布) ← 测试修复
   ↑
-develop (开发主线)
+develop (开发主线) ← 最新功能
   ├── feature/login (功能分支)
   ├── feature/payment (功能分支)
   └── feature/user-profile (功能分支)
@@ -4231,7 +4801,38 @@ git flow hotfix finish bug-fix
 4. ✅ 代码审查通过后合并
 5. ✅ 合并后立即部署
 
-**流程图**：
+**Mermaid 流程图**：
+
+```mermaid
+gitGraph
+    commit id: "main 稳定"
+    branch feature/checkout
+    checkout feature/checkout
+    commit id: "开发中"
+    commit id: "开发完成"
+    
+    checkout main
+    merge feature/checkout id: "合并" tag: "自动部署"
+    
+    branch feature/search
+    checkout feature/search
+    commit id: "开发中"
+    commit id: "提交 PR"
+    
+    note over feature/search: 📝 Pull Request<br/>团队审查 + CI 测试
+    
+    checkout main
+    merge feature/search id: "合并" tag: "自动部署"
+```
+
+**核心规则**：
+1. ✅ **main 分支随时可部署** - 生产环境代码
+2. ✅ **功能分支从 main 创建** - 独立开发
+3. ✅ **推送后创建 Pull Request** - 代码审查
+4. ✅ **代码审查通过后合并** - 质量保证
+5. ✅ **合并后立即部署** - 持续交付
+
+**文字流程图**：
 ```
 main (始终可部署)
   ↓
@@ -4241,15 +4842,15 @@ main (始终可部署)
   ↓
 推送到 GitHub
   ↓
-创建 Pull Request
+创建 Pull Request 📝
   ↓
-团队审查 + 讨论
+团队审查 + 讨论 + CI 测试
   ↓
-通过审查
+通过审查 ✅
   ↓
 合并到 main
   ↓
-自动部署到生产
+自动部署到生产 🚀
 ```
 
 ---
