@@ -98,10 +98,10 @@ git version 2.25.1
 
 ```bash
 # 配置用户名（对所有仓库生效）
-git config --global user.name "zhangya"
+git config --global user.name "example-user"
 
 # 配置邮箱（对所有仓库生效）
-git config --global user.email "526195417@qq.com"
+git config --global user.email "user@example.com"
 ```
 
 **说明**：
@@ -150,8 +150,8 @@ git config --list
 **输出示例**：
 ```bash
 [root@gitlab ~]# git config --list
-user.name=zhangya
-user.email=526195417@qq.com
+user.name=example-user
+user.email=user@example.com
 color.ui=true
 core.repositoryformatversion=0
 core.filemode=true
@@ -175,8 +175,8 @@ cat ~/.gitconfig
 ```bash
 [root@gitlab ~]# cat .gitconfig
 [user]
-    name = zhangya
-    email = 526195417@qq.com
+    name = example-user
+    email = user@example.com
 [color]
     ui = true
 ```
@@ -637,13 +637,13 @@ git log
 ```bash
 [root@gitlab /git_data]# git log
 commit 8203c878bc30c3bd23ee977e5980232fa660ddae
-Author: zhangya <526195417@qq.com>
+Author: example-user <user@example.com>
 Date:   Mon May 11 13:38:22 2020 +0800
 
     modified a
 
 commit 5c3ddba7bc8de6b8575e77513ee9805021ffc5ef
-Author: zhangya <526195417@qq.com>
+Author: example-user <user@example.com>
 Date:   Mon May 11 13:26:10 2020 +0800
 
     rename a.txt a
