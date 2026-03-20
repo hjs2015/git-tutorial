@@ -3366,430 +3366,468 @@ cd ../feature-b
 
 ## 第 6 章 Git 核心底层原理
 
+> 🔬 **深入理解 Git 内部机制**  
+> 掌握底层原理，让你从"会用 Git"进阶到"理解 Git"，遇到复杂问题不再迷茫
+
 ### 6.1 Git 对象模型
 
-#### 四种基本对象
+#### 四种核心对象
 
-> Git 所有内容都存储为四种对象类型：
+> Git 所有内容都存储为对象，每种对象都有唯一 SHA-1 哈希 ID
 
-| 对象类型 | 用途 | 存储内容 |
-|:---|:---|:---|
-| **Blob** | 文件内容 | 文件的二进制数据 |
-| **Tree** | 目录结构 | 文件名、模式、指向 blob/tree 的指针 |
-| **Commit** | 提交快照 | 指向 tree 的指针、父提交、作者信息、提交信息 |
-| **Tag** | 版本标签 | 指向 commit 的指针、标签信息 |
+**对象类型**：
+
+| 类型 | 作用 | 内容 | 示例 |
+|:---:|:---|:---|:---|
+| **Blob** | 存储文件内容 | 文件的二进制数据 | 源代码、配置文件 |
+| **Tree** | 存储目录结构 | 文件名 + 类型 + Blob/Tree 引用 | 目录、子目录 |
+| **Commit** | 存储提交信息 | Tree 引用 + 父提交 + 作者 + 提交信息 | 版本快照 |
+| **Tag** | 存储标签信息 | Commit 引用 + 标签名 + 签名 | 版本标记 |
+
+**对象关系图**：
+```
+Commit 对象
+┌─────────────────────────────────┐
+│ commit abc123...                │
+│ tree def456...  ← 指向 Tree     │
+│ parent 789ghi... ← 父提交       │
+│ author Example <user@example.com>│
+│ date 2026-03-21 10:30:00        │
+│ message "Fix login bug"         │
+└─────────────────────────────────┘
+           ↓
+Tree 对象
+┌─────────────────────────────────┐
+│ tree def456...                  │
+│ 040000 tree abc... src/         │
+│ 040000 tree def... tests/       │
+│ 100644 blob 123... README.md    │
+│ 100644 blob 456... main.py      │
+└─────────────────────────────────┘
+           ↓
+Blob 对象
+┌─────────────────────────────────┐
+│ blob 123...                     │
+│ # Project README                │
+│ This is a sample project...     │
+└─────────────────────────────────┘
+```
 
 ---
 
-#### 对象存储位置
+#### 查看 Git 对象
 
 ```bash
-# Git 对象存储在 .git/objects 目录
-ls -la .git/objects/
+# 查看对象类型
+git cat-file -t <hash>
 
-# 输出示例
-drwxr-xr-x  22 user user 4096 Mar 21 15:00 .
-drwxr-xr-x   8 user user 4096 Mar 21 15:00 ..
-drwxr-xr-x   2 user user 4096 Mar 21 15:00 02
-drwxr-xr-x   2 user user 4096 Mar 21 15:00 0f
-drwxr-xr-x   2 user user 4096 Mar 21 15:00 3e
-...
+# 查看对象内容
+git cat-file -p <hash>
+
+# 示例：查看提交对象
+git cat-file -t abc123...
+# 输出：commit
+
+git cat-file -p abc123...
+# 输出：
+# tree def456...
+# parent 789ghi...
+# author Example <user@example.com> 1711008600 +0800
+# committer Example <user@example.com> 1711008600 +0800
+# 
+# Fix login bug
 ```
 
-**对象命名规则**：
-- SHA-1 哈希值（40 个十六进制字符）
-- 前 2 个字符作为目录名
-- 剩余 38 个字符作为文件名
+---
+
+#### 实践：手动创建 Git 对象
+
+```bash
+# 1. 创建 Blob 对象
+echo "Hello Git" | git hash-object -w --stdin
+# 输出：83dbaef... (SHA-1 哈希)
+
+# 2. 查看 Blob 内容
+git cat-file -p 83dbaef...
+# 输出：Hello Git
+
+# 3. 创建 Tree 对象
+git mktree <<EOF
+100644 blob 83dbaef... hello.txt
+EOF
+# 输出：tree 哈希
+
+# 4. 创建 Commit 对象
+echo "Initial commit" | git commit-tree <tree-hash>
+# 输出：commit 哈希
+```
+
+**⚠️ 注意**：手动创建对象很少用，但有助于理解原理
+
+---
+
+### 6.2 SHA-1 哈希算法
+
+#### 哈希特性
+
+> Git 使用 SHA-1（160 位）为每个对象生成唯一标识
+
+**SHA-1 特点**：
+- ✅ **唯一性**：不同内容生成不同哈希（理论上）
+- ✅ **不可逆**：无法从哈希反推内容
+- ✅ **固定长度**：始终 40 个十六进制字符
+- ✅ **雪崩效应**：内容微小变化，哈希完全不同
 
 **示例**：
-```
-对象哈希：a1b2c3d4e5f6...
-存储路径：.git/objects/a1/b2c3d4e5f6...
+```bash
+# 相同内容 → 相同哈希
+echo "Hello" | git hash-object --stdin
+# 输出：f57035b
+
+echo "Hello" | git hash-object --stdin
+# 输出：f57035b (完全相同)
+
+# 不同内容 → 完全不同哈希
+echo "Hello" | git hash-object --stdin
+# 输出：f57035b
+
+echo "hello" | git hash-object --stdin
+# 输出：95297e (小写 h 完全不同)
 ```
 
 ---
 
-#### 查看对象内容
+#### SHA-256 迁移
+
+> ⚠️ SHA-1 已证明存在理论漏洞，Git 正在迁移到 SHA-256
 
 ```bash
-# 查看对象类型和内容
-git cat-file -t <hash>    # 查看类型
-git cat-file -p <hash>    # 查看内容
+# 查看当前哈希算法
+git config extensions.objectFormat
 
-# 示例
-git cat-file -t a1b2c3d
-git cat-file -p a1b2c3d
+# Git 2.42+ 支持 SHA-256
+git init --object-format=sha256
 ```
 
-**输出示例**：
-```bash
-$ git cat-file -t a1b2c3d
-blob
-
-$ git cat-file -p a1b2c3d
-# 文件内容
-print("Hello, Git!")
-```
+**迁移计划**：
+- Git 2.29+：支持 SHA-256 实验性功能
+- Git 2.42+：SHA-256 更稳定
+- 未来：默认使用 SHA-256
 
 ---
 
-### 6.2 Commit 对象结构
-
-#### Commit 对象详解
-
-```bash
-# 查看 commit 对象原始内容
-git cat-file -p <commit-hash>
-```
-
-**输出示例**：
-```bash
-$ git cat-file -p 921d88e
-tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
-parent 7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c
-author Example User <user@example.com> 1711008000 +0800
-committer Example User <user@example.com> 1711008000 +0800
-
-feat: add user login
-
-- Add login page
-- Add authentication logic
-- Add session management
-```
-
-**字段解读**：
-- `tree`：指向顶层 tree 对象（目录快照）
-- `parent`：指向父提交（多个 parent 表示合并提交）
-- `author`：原作者（姓名、邮箱、时间戳、时区）
-- `committer`：最后提交者（可能与 author 不同）
-- 空行后：提交信息
-
----
-
-#### Author vs Committer
-
-> **区别**：
-> - **Author**：代码的原始作者
-> - **Committer**：最后将代码提交到仓库的人
-
-**典型场景**：
-```bash
-# 场景 1：Patch 提交
-# Author = 原始代码作者
-# Committer = 应用 patch 的人
-
-# 场景 2：Rebase
-# Author = 原始作者（保持不变）
-# Committer = 执行 rebase 的人（更新为新时间）
-
-# 场景 3：Cherry-pick
-# Author = 原始提交作者
-# Committer = 执行 cherry-pick 的人
-```
-
----
-
-### 6.3 Tree 对象结构
-
-#### Tree 对象详解
-
-```bash
-# 查看 tree 对象内容
-git cat-file -p <tree-hash>
-```
-
-**输出示例**：
-```bash
-$ git cat-file -p 4b825dc
-100644 blob a1b2c3d    README.md
-100644 blob e5f6a7b    main.py
-040000 tree b2c3d4e    src
-100644 blob c3d4e5f    requirements.txt
-```
-
-**字段解读**：
-- `100644`：文件模式（普通文件）
-- `040000`：目录模式
-- `blob/tree`：对象类型
-- `a1b2c3d`：对象哈希
-- `README.md`：文件名
-
----
-
-#### 文件模式说明
-
-| 模式 | 类型 | 说明 |
-|:---|:---|:---|
-| `100644` | blob | 普通文件 |
-| `100755` | blob | 可执行文件 |
-| `120000` | blob | 符号链接 |
-| `040000` | tree | 子目录 |
-| `160000` | commit | 子模块（gitlink） |
-
----
-
-### 6.4 Git 引用（Refs）
+### 6.3 引用（Reference）
 
 #### 什么是引用？
 
-> **引用（Ref）**：指向 commit 对象的可变指针
+> **引用**是指向 Commit 的指针，是 Git 中"可变"的部分
 
-**存储位置**：
-```bash
-# 分支引用
-.git/refs/heads/main
-.git/refs/heads/feature
-
-# 标签引用
-.git/refs/tags/v1.0
-
-# 远程跟踪引用
-.git/refs/remotes/origin/main
+**引用类型**：
 ```
-
-**引用内容**：
-```bash
-# .git/refs/heads/main 文件内容
-921d88e7bc8de6b8575e77513ee9805021ffc5ef
-```
-
-**说明**：
-- 文件内容就是 commit 哈希值
-- 修改文件 = 移动分支指针
-
----
-
-#### HEAD 引用
-
-> **HEAD**：特殊引用，指向当前所在的分支
-
-**存储位置**：
-```bash
-# .git/HEAD 文件内容
-ref: refs/heads/main
-```
-
-**说明**：
-- `ref:` 表示符号引用
-- 指向 `refs/heads/main`
-- 切换分支 = 修改 HEAD 文件
-
-**Detached HEAD**：
-```bash
-# 直接指向 commit（符号引用）
-921d88e7bc8de6b8575e77513ee9805021ffc5ef
+refs/
+├── heads/           # 分支引用
+│   ├── main        → commit abc123
+│   └── feature     → commit def456
+├── tags/            # 标签引用
+│   ├── v1.0        → commit 789ghi
+│   └── v2.0        → commit jkl012
+└── remotes/         # 远程跟踪引用
+    └── origin/
+        ├── main    → commit mno345
+        └── develop → commit pqr678
 ```
 
 ---
 
-### 6.5 Git 日志原理
-
-#### 提交历史链
-
-```
-commit-3 (HEAD -> main)
-    ↑
-    parent
-commit-2
-    ↑
-    parent
-commit-1
-    ↑
-    parent
-commit-0 (初始提交)
-```
-
-**原理**：
-- 每个 commit 包含 parent 指针
-- 追溯 parent = 遍历历史
-- 多个 parent = 合并提交
-
----
-
-#### git log 工作原理
+#### 查看引用
 
 ```bash
-# git log 本质是遍历 commit 链
-git log --oneline
+# 查看所有引用
+git show-ref
 
-# 从 HEAD 开始，沿 parent 指针向后遍历
-# 直到初始提交（无 parent）
-```
+# 输出示例
+abc123... refs/heads/main
+def456... refs/heads/feature
+789ghi... refs/tags/v1.0
+mno345... refs/remotes/origin/main
 
-**图形化显示**：
-```bash
-# 显示分支图
-git log --graph --oneline --all
+# 查看引用文件
+cat .git/refs/heads/main
+# 输出：abc123...
 
-# 输出
-* 8f3a2b1 (HEAD -> main) feat: add login
-| * abc123de (feature) fix: bug
-|/
-* def456gh initial commit
+# 查看 HEAD
+cat .git/HEAD
+# 输出：ref: refs/heads/main
 ```
 
 ---
 
-### 6.6 Git 索引（Index）
+#### HEAD 详解
 
-#### 什么是索引？
+> **HEAD** 是当前分支的引用，指向你正在工作的分支
 
-> **索引（Index）**：暂存区，准备提交的快照
+**HEAD 状态**：
+```
+正常状态（附加到分支）：
+.git/HEAD → ref: refs/heads/main → commit abc123
 
-**存储位置**：
-```bash
-.git/index    # 二进制文件
+Detached HEAD（游离状态）：
+.git/HEAD → commit abc123 (直接指向提交，不指向分支)
 ```
 
-**查看索引内容**：
+**切换 HEAD**：
 ```bash
-# 查看暂存区文件
+# 正常切换（移动分支指针）
+git switch feature
+# HEAD → refs/heads/feature
+
+# Detached HEAD（直接指向提交）
+git switch --detach abc123
+# HEAD → abc123 (不指向任何分支)
+```
+
+---
+
+### 6.4 索引（Index）详解
+
+#### 索引是什么？
+
+> **索引**（暂存区）是 Git 的核心设计，是工作区和仓库之间的缓冲区
+
+**索引文件**：
+- 位置：`.git/index`
+- 作用：记录准备提交的文件状态
+- 格式：二进制文件（不能用文本编辑器打开）
+
+**索引内容**：
+```
+索引条目 = 文件路径 + Blob 哈希 + 文件模式 + 时间戳
+
+示例：
+100644 blob 83dbaef... README.md
+100644 blob 123abc... src/main.py
+040000 tree def456... src/
+```
+
+---
+
+#### 索引操作
+
+```bash
+# 查看索引内容
 git ls-files --stage
 
 # 输出示例
-100644 a1b2c3d 0    README.md
-100644 e5f6a7b 0    main.py
-```
+100644 83dbaef... 0	README.md
+100644 123abc... 0	src/main.py
 
-**字段解读**：
-- `100644`：文件模式
-- `a1b2c3d`：blob 哈希
-- `0`：阶段（0=正常，1-3=合并冲突）
-- `README.md`：文件路径
-
----
-
-#### 三棵树架构
-
-> Git 使用"三棵树"管理文件状态：
-
-```
-工作区（Working Directory）  ← 你看到的文件
-    ↓ git add
-索引（Index / Staging Area） ← 暂存区
-    ↓ git commit
-仓库（Repository / HEAD）    ← 已提交的历史
-```
-
-**状态对比**：
-```bash
-# 工作区 vs 索引
-git diff
-
-# 索引 vs HEAD
-git diff --cached
-
-# 工作区 vs HEAD
-git diff HEAD
+# 格式说明
+# 文件模式  Blob 哈希     阶段	文件路径
+# 阶段 0 = 正常
+# 阶段 1 = 合并基线
+# 阶段 2 = ours
+# 阶段 3 = theirs
 ```
 
 ---
 
-### 6.7 Git 打包与压缩
+#### 索引与合并冲突
 
-#### Packfile
-
-> **Packfile**：Git 将多个对象打包压缩存储
-
-**位置**：
 ```bash
-.git/objects/pack/
-  pack-abc123.idx    # 索引文件
-  pack-abc123.pack   # 打包文件
+# 合并冲突时，索引包含 3 个版本
+git ls-files --stage
+
+# 输出示例
+100644 abc123... 1	config.txt  # 共同祖先
+100644 def456... 2	config.txt  # 当前分支 (ours)
+100644 789ghi... 3	config.txt  # 合并分支 (theirs)
+
+# 解决冲突后，索引恢复正常
+git add config.txt
+git ls-files --stage
+# 输出：100644 jkl012... 0	config.txt
 ```
 
-**查看打包信息**：
+---
+
+### 6.5 Packfile 打包机制
+
+#### 为什么需要 Packfile？
+
+> 随着提交增多，Git 对象会占用大量磁盘空间。Packfile 通过压缩和增量存储优化空间
+
+**存储演进**：
+```
+初期（松散对象）：
+.git/objects/
+├── ab/ cdef123...  (Blob)
+├── 12/ 345678...  (Tree)
+└── 78/ 9abcde...  (Commit)
+每个对象独立文件
+
+后期（打包后）：
+.git/objects/
+├── pack/
+│   ├── pack-abc123...pack  (打包文件)
+│   └── pack-abc123...idx   (索引文件)
+所有对象压缩到一个文件
+```
+
+---
+
+#### Packfile 操作
+
 ```bash
-# 查看打包统计
+# 手动打包
+git gc
+# Git 自动清理和优化
+
+# 查看打包信息
 git count-objects -v
 
 # 输出示例
-count: 150
-size: 600
-in-pack: 1000
-packs: 2
-size-pack: 250
-prune-packable: 50
-garbage: 0
-size-garbage: 0
-```
-
-**字段解读**：
-- `count`：松散对象数
-- `in-pack`：打包对象数
-- `packs`：打包文件数
-- `size-pack`：打包文件大小（KB）
-
----
-
-#### 垃圾回收
-
-```bash
-# 手动垃圾回收
-git gc
-
-# 激进回收（更彻底）
-git gc --aggressive
-
-# 自动回收触发条件
-git config gc.auto
-```
-
-**输出示例**：
-```bash
-$ git gc
-Enumerating objects: 1150, done.
-Counting objects: 100% (1150/1150), done.
-Delta compression using up to 8 threads
-Compressing objects: 100% (700/700), done.
-Writing objects: 100% (1150/1150), done.
-Total 1150 (delta 400), reused 800 (delta 300)
+count: 150            # 松散对象数
+size: 600             # 松散对象占用 (KB)
+in-pack: 5000         # 打包对象数
+packs: 1              # 打包文件数
+size-pack: 2048       # 打包文件大小 (KB)
+prune-packable: 0     # 可修剪的打包对象
+garbage: 0            # 垃圾对象
 ```
 
 ---
 
-### 6.8 Git Hooks 钩子原理
+#### 增量打包（Delta）
 
-#### 钩子类型
+> Packfile 使用增量压缩：相似对象只存储差异部分
 
-> **Hooks**：Git 在特定事件触发的脚本
+**原理**：
+```
+原始存储：
+Commit 1: 100KB (完整存储)
+Commit 2: 100KB (完整存储)
+Commit 3: 100KB (完整存储)
+总计：300KB
 
-**位置**：
-```bash
-.git/hooks/
-  pre-commit.sample
-  commit-msg.sample
-  post-receive.sample
-  ...
+增量打包：
+Commit 1: 100KB (基准)
+Commit 2: 5KB (只存差异)
+Commit 3: 3KB (只存差异)
+总计：108KB (节省 64%)
 ```
 
-**客户端钩子**：
-| 钩子名 | 触发时机 | 用途 |
+---
+
+### 6.6 Reflog 引用日志
+
+#### Reflog 是什么？
+
+> **Reflog** 记录 HEAD 和分支的所有移动历史，是 Git 的"后悔药"
+
+**Reflog vs Log**：
+| 特性 | Log | Reflog |
 |:---|:---|:---|
-| `pre-commit` | 提交前 | 代码检查、格式化 |
-| `prepare-commit-msg` | 编辑提交信息前 | 自动生成提交信息 |
-| `commit-msg` | 提交信息编辑后 | 验证提交信息格式 |
-| `post-commit` | 提交后 | 发送通知、触发 CI |
-
-**服务端钩子**：
-| 钩子名 | 触发时机 | 用途 |
-|:---|:---|:---|
-| `pre-receive` | 接收推送前 | 权限检查、代码审查 |
-| `update` | 更新引用前 | 分支保护、标签验证 |
-| `post-receive` | 推送后 | 部署、通知 |
+| **记录内容** | 提交历史 | 引用移动历史 |
+| **持久性** | 永久（除非删除） | 默认 90 天过期 |
+| **作用** | 查看项目演进 | 恢复误操作 |
+| **范围** | 当前分支 | 所有引用移动 |
 
 ---
 
-#### 启用钩子
+#### Reflog 操作
 
 ```bash
-# 移除 .sample 后缀启用钩子
-mv .git/hooks/pre-commit.sample .git/hooks/pre-commit
+# 查看 HEAD 移动历史
+git reflog
 
-# 编辑钩子脚本
-vim .git/hooks/pre-commit
+# 输出示例
+abc123 HEAD@{0}: reset: moving to HEAD~1
+def456 HEAD@{1}: commit: Add new feature
+789ghi HEAD@{2}: checkout: moving from main to feature
 
-# 添加执行权限
+# 查看指定引用的 reflog
+git reflog show main
+
+# 从 reflog 恢复
+git reset --hard HEAD@{2}
+```
+
+---
+
+#### Reflog 恢复场景
+
+**场景 1：误删分支**
+```bash
+# 删除分支
+git branch -D feature
+
+# 从 reflog 找回
+git reflog | grep feature
+# 输出：abc123 HEAD@{3}: branch: Created from 'main'
+
+git branch feature abc123
+```
+
+**场景 2：误用 reset**
+```bash
+# 误操作
+git reset --hard HEAD~3
+
+# 找回丢失的提交
+git reflog
+# 找到 reset 前的提交哈希
+
+git reset --hard def456  # 恢复到之前状态
+```
+
+---
+
+### 6.7 Git Hooks 钩子原理
+
+#### Hooks 工作机制
+
+> **Hooks** 是 Git 在特定事件触发的脚本，位于 `.git/hooks/`
+
+**钩子类型**：
+```
+客户端钩子：
+├── pre-commit      → git commit 前
+├── prepare-commit-msg → 提交信息编辑前
+├── commit-msg      → 提交信息编辑后
+├── post-commit     → git commit 后
+├── pre-push        → git push 前
+└── post-checkout   → git checkout 后
+
+服务端钩子：
+├── pre-receive     → 接收推送前
+├── update          → 更新引用前
+└── post-receive    → 推送完成后
+```
+
+---
+
+#### 钩子示例
+
+```bash
+# pre-commit 钩子示例
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+# 检查是否有调试代码
+
+if git diff --cached | grep -q "console.log\|debugger"; then
+    echo "❌ 错误：检测到调试代码"
+    exit 1
+fi
+
+# 检查代码格式
+if ! command -v black &> /dev/null; then
+    echo "⚠️ 警告：black 未安装，跳过格式检查"
+    exit 0
+fi
+
+git diff --cached --name-only | grep '\.py$' | xargs black --check
+EOF
+
 chmod +x .git/hooks/pre-commit
 ```
 
@@ -3797,47 +3835,215 @@ chmod +x .git/hooks/pre-commit
 
 ## 第 7 章 Git 企业级协作规范
 
-### 7.1 分支命名规范
+> 🏢 **企业级 Git 工作流**  
+> 标准化流程、代码审查、权限管理、自动化检查，提升团队协作效率
 
-#### 推荐命名约定
+### 7.1 Git Flow 工作流
 
-| 分支类型 | 前缀 | 示例 | 说明 |
-|:---|:---|:---|:---|
-| **主分支** | 无 | `main`, `master` | 生产环境代码 |
-| **开发分支** | `develop` | `develop` | 集成分支 |
-| **功能分支** | `feature/` | `feature/user-login` | 新功能开发 |
-| **修复分支** | `bugfix/` | `bugfix/login-error` | Bug 修复 |
-| **热修复** | `hotfix/` | `hotfix/payment-bug` | 生产环境紧急修复 |
-| **发布分支** | `release/` | `release/v1.2.0` | 版本发布准备 |
-| **实验分支** | `experiment/` | `experiment/new-ui` | 实验性功能 |
+#### Git Flow 模型
 
----
+> **Git Flow** 是最经典的企业级工作流，适合有固定发布周期的项目
 
-#### 命名最佳实践
-
-**✅ 推荐**：
-```bash
-feature/user-login
-bugfix/issue-123
-hotfix/payment-crash
-release/v1.2.0
+**分支结构**：
 ```
-
-**❌ 避免**：
-```bash
-test           # 太模糊
-fix            # 不清楚修复什么
-new-feature    # 缺少前缀
-my-branch      # 个人化命名
+main (生产环境)
+  ↑
+release/v1.0 (预发布)
+  ↑
+develop (开发主线)
+  ├── feature/login (功能分支)
+  ├── feature/payment (功能分支)
+  └── feature/user-profile (功能分支)
+  
+hotfix/bug-fix (紧急修复，从 main 分出)
 ```
 
 ---
 
-### 7.2 提交信息规范
+#### 分支类型详解
 
-#### Conventional Commits 规范
+| 分支类型 | 命名规范 | 来源 | 合并到 | 用途 |
+|:---|:---|:---|:---|:---|
+| **main** | main/master | - | - | 生产环境，随时可部署 |
+| **develop** | develop | main | main | 开发主线，包含最新功能 |
+| **feature** | feature/* | develop | develop | 新功能开发 |
+| **release** | release/* | develop | main + develop | 预发布，测试修复 |
+| **hotfix** | hotfix/* | main | main + develop | 紧急修复 |
 
-> 📋 **约定式提交**：结构化的提交信息格式
+---
+
+#### Git Flow 操作流程
+
+**1. 开发新功能**
+```bash
+# 从 develop 创建功能分支
+git switch develop
+git switch -c feature/user-auth
+
+# 开发功能
+# ... 编写代码 ...
+
+git add .
+git commit -m "feat: add user authentication"
+
+# 推送功能分支
+git push -u origin feature/user-auth
+
+# 完成后合并回 develop
+git switch develop
+git merge --no-ff feature/user-auth
+git branch -d feature/user-auth
+git push origin develop
+```
+
+---
+
+**2. 发布新版本**
+```bash
+# 从 develop 创建 release 分支
+git switch develop
+git switch -c release/v1.0
+
+# 版本号更新、最终测试
+# ... 修复 bug ...
+
+git commit -m "chore: bump version to 1.0.0"
+
+# 合并到 main 和 develop
+git switch main
+git merge --no-ff release/v1.0
+git tag v1.0
+
+git switch develop
+git merge --no-ff release/v1.0
+
+git branch -d release/v1.0
+git push origin main develop --tags
+```
+
+---
+
+**3. 紧急修复**
+```bash
+# 从 main 创建 hotfix 分支
+git switch main
+git switch -c hotfix/login-bug
+
+# 修复 bug
+# ... 修复代码 ...
+
+git commit -m "fix: resolve login issue"
+
+# 合并到 main 和 develop
+git switch main
+git merge --no-ff hotfix/login-bug
+git tag v1.0.1
+
+git switch develop
+git merge --no-ff hotfix/login-bug
+
+git branch -d hotfix/login-bug
+git push origin main develop --tags
+```
+
+---
+
+#### Git Flow 工具
+
+```bash
+# 安装 git-flow
+# Ubuntu/Debian
+sudo apt install git-flow
+
+# macOS
+brew install git-flow
+
+# 初始化 git-flow
+git flow init
+
+# 使用 git-flow 命令
+git flow feature start login
+git flow feature finish login
+git flow release start 1.0
+git flow release finish 1.0
+git flow hotfix start bug-fix
+git flow hotfix finish bug-fix
+```
+
+---
+
+### 7.2 GitHub Flow 工作流
+
+#### GitHub Flow 特点
+
+> **GitHub Flow** 更轻量，适合持续部署的 SaaS 项目
+
+**核心规则**：
+1. ✅ main 分支随时可部署
+2. ✅ 功能分支从 main 创建
+3. ✅ 推送后创建 Pull Request
+4. ✅ 代码审查通过后合并
+5. ✅ 合并后立即部署
+
+**流程图**：
+```
+main (始终可部署)
+  ↓
+创建分支 feature-xxx
+  ↓
+本地开发 + 提交
+  ↓
+推送到 GitHub
+  ↓
+创建 Pull Request
+  ↓
+团队审查 + 讨论
+  ↓
+通过审查
+  ↓
+合并到 main
+  ↓
+自动部署到生产
+```
+
+---
+
+#### GitHub Flow 操作
+
+```bash
+# 1. 从 main 创建分支
+git switch main
+git pull origin main
+git switch -c feature/new-checkout
+
+# 2. 开发功能
+# ... 编写代码 ...
+git commit -m "Add new checkout flow"
+
+# 3. 推送并创建 PR
+git push -u origin feature/new-checkout
+# 在 GitHub 上创建 Pull Request
+
+# 4. 代码审查（GitHub 界面）
+# - 同事审查代码
+# - 讨论修改建议
+# - CI 自动测试
+
+# 5. 合并到 main
+# - 审查通过后点击 "Merge"
+# - 删除功能分支
+
+# 6. 部署
+# - 自动部署到生产环境
+```
+
+---
+
+### 7.3 提交信息规范
+
+#### Conventional Commits
+
+> **约定式提交**：标准化的提交信息格式，便于自动生成 CHANGELOG
 
 **格式**：
 ```
@@ -3848,267 +4054,349 @@ my-branch      # 个人化命名
 <footer>
 ```
 
-**类型（type）**：
-| 类型 | 说明 | 版本影响 |
-|:---|:---|:---|
-| `feat` | 新功能 | 次版本号 Y |
-| `fix` | Bug 修复 | 修订号 Z |
-| `docs` | 文档更新 | 无 |
-| `style` | 代码格式（不影响功能） | 无 |
-| `refactor` | 重构（非新功能/修复） | 无 |
-| `test` | 测试相关 | 无 |
-| `chore` | 构建过程/辅助工具变动 | 无 |
-| `perf` | 性能优化 | 修订号 Z |
-| `ci` | CI 配置 | 无 |
-| `build` | 构建系统 | 无 |
-
----
-
 **示例**：
 ```bash
-# 新功能
 feat(auth): add user login functionality
 
-- Add login page component
-- Implement JWT authentication
-- Add session management
+Implement OAuth2 login with Google and GitHub providers.
+Add login form validation and error handling.
 
 Closes #123
-
-# Bug 修复
-fix(payment): resolve payment timeout issue
-
-The payment gateway was timing out after 30 seconds.
-Increased timeout to 60 seconds and added retry logic.
-
-Fixes #456
-
-# 破坏性变更
-feat(api)!: change user endpoint response format
-
-BREAKING CHANGE: user endpoint now returns nested object
-
-- Old: { "name": "John", "email": "john@example.com" }
-- New: { "user": { "name": "John", "email": "john@example.com" } }
+BREAKING CHANGE: login API endpoint changed from /auth to /api/v1/auth
 ```
 
 ---
 
-### 7.3 Git Flow 工作流
+#### 提交类型（type）
 
-#### Git Flow 分支模型
+| 类型 | 说明 | 示例 |
+|:---|:---|:---|
+| **feat** | 新功能 | `feat: add payment module` |
+| **fix** | 修复 bug | `fix: resolve memory leak` |
+| **docs** | 文档更新 | `docs: update API reference` |
+| **style** | 代码格式 | `style: format code with prettier` |
+| **refactor** | 代码重构 | `refactor: simplify user service` |
+| **test** | 测试相关 | `test: add unit tests for auth` |
+| **chore** | 构建/工具 | `chore: update dependencies` |
+| **perf** | 性能优化 | `perf: improve query speed` |
+| **ci** | CI 配置 | `ci: add GitHub Actions workflow` |
+| **build** | 构建系统 | `build: upgrade webpack to v5` |
 
+---
+
+#### 作用域（scope）
+
+> **scope** 指定修改影响的模块或范围
+
+**常见作用域**：
 ```
-main (生产)
-  ↑
-  └── release/v1.0 (发布)
-        ↑
-        └── develop (开发)
-              ↑
-              ├── feature/login (功能)
-              ├── feature/payment (功能)
-              └── bugfix/issue-123 (修复)
-              
-hotfix/critical-bug (热修复)
-  ↑
-  └── main
+feat(auth): ...        # 认证模块
+fix(api): ...          # API 服务
+docs(readme): ...      # README 文档
+test(unit): ...        # 单元测试
+ci(github): ...        # GitHub Actions
+```
+
+**无作用域**（影响全局）：
+```
+feat: add logging
+fix: resolve typo
 ```
 
 ---
 
-#### Git Flow 操作流程
+#### 主题行（subject）规则
 
-**1. 初始化 Git Flow**：
+> **主题行** 简明扼要描述修改内容
+
+**规则**：
+1. ✅ 使用祈使句（"add" 而非 "added"）
+2. ✅ 首字母小写
+3. ✅ 末尾无句号
+4. ✅ 长度 ≤ 50 字符
+
+**好 vs 坏**：
 ```bash
-# 安装 git-flow（如未安装）
-# Ubuntu/Debian
-sudo apt install git-flow
+# ✅ 好
+feat: add user authentication
+fix: resolve login timeout issue
 
-# macOS
-brew install git-flow
-
-# 初始化
-git flow init
-```
-
-**2. 开发新功能**：
-```bash
-# 开始新功能
-git flow feature start user-login
-
-# 开发完成后发布
-git flow feature publish user-login
-
-# 完成功能（合并到 develop）
-git flow feature finish user-login
-```
-
-**3. 发布新版本**：
-```bash
-# 开始发布
-git flow release start v1.0.0
-
-# 测试修复（在 release 分支）
-git commit -m "fix: minor bug fixes"
-
-# 完成发布（合并到 main 和 develop，创建标签）
-git flow release finish v1.0.0
-```
-
-**4. 热修复生产环境**：
-```bash
-# 开始热修复
-git flow hotfix start critical-bug
-
-# 修复并提交
-git commit -m "fix: resolve critical payment bug"
-
-# 完成热修复（合并到 main 和 develop，创建标签）
-git flow hotfix finish v1.0.1
+# ❌ 坏
+feat: Added user authentication (过去式)
+Fix: Resolved login timeout issue. (首字母大写 + 句号)
+fix: This is a very long commit message that exceeds 50 characters limit
 ```
 
 ---
 
-### 7.4 GitHub Flow 工作流
+#### 正文（body）和页脚（footer）
 
-#### GitHub Flow 简化模型
+**正文**（可选）：
+- 描述修改动机
+- 说明实现方式
+- 解释设计决策
 
+**页脚**（可选）：
+- 关联 Issue：`Closes #123`
+- 破坏性变更：`BREAKING CHANGE: ...`
+- 共同作者：`Co-authored-by: Name <email>`
+
+**完整示例**：
+```bash
+feat(payment): integrate Stripe payment gateway
+
+Add Stripe integration for credit card payments.
+Implement webhook handling for payment events.
+Add payment status tracking in database.
+
+Testing:
+- Unit tests for payment service
+- Integration tests with Stripe test mode
+
+Closes #456
+BREAKING CHANGE: Payment API response format changed
 ```
-main (始终可部署)
-  ↑
-  └── feature-branch (从 main 创建，PR 后删除)
-```
-
-**核心原则**：
-1. `main` 分支始终可部署
-2. 功能分支从 `main` 创建
-3. 开发完成后创建 Pull Request
-4. 代码审查通过后合并到 `main`
-5. 立即部署
-6. 删除功能分支
 
 ---
 
-#### GitHub Flow 操作流程
+### 7.4 代码审查（Code Review）
 
-**1. 创建功能分支**：
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/user-login
+#### Pull Request 流程
+
+> **PR 流程**：确保代码质量、知识共享、团队对齐
+
+**标准流程**：
 ```
-
-**2. 开发并提交**：
-```bash
-# 多次提交
-git add .
-git commit -m "feat: add login page"
-git push -u origin feature/user-login
+1. 创建 PR
+   ↓
+2. 自动检查（CI）
+   ↓
+3. 分配审查者
+   ↓
+4. 审查代码
+   ↓
+5. 讨论修改
+   ↓
+6. 通过审查
+   ↓
+7. 合并代码
 ```
-
-**3. 创建 Pull Request**：
-- 在 GitHub 上创建 PR
-- 描述功能、截图、测试说明
-- 请求代码审查
-
-**4. 代码审查与修改**：
-```bash
-# 根据审查意见修改
-git add .
-git commit -m "fix: address review comments"
-git push  # PR 自动更新
-```
-
-**5. 合并与部署**：
-- 审查通过后合并到 `main`
-- 自动部署到生产环境
-- 删除功能分支
 
 ---
 
-### 7.5 代码审查最佳实践
+#### 审查清单
 
-#### Pull Request 规范
+**代码质量**：
+- ✅ 代码是否清晰易懂？
+- ✅ 是否有重复代码？
+- ✅ 是否遵循编码规范？
+- ✅ 是否有必要的注释？
 
-**PR 标题**：
-```
-✅ feat: 添加用户登录功能
-✅ fix: 修复支付超时问题
-❌ 更新代码
-❌ 修复 bug
-```
+**功能正确性**：
+- ✅ 是否实现需求？
+- ✅ 边界条件是否处理？
+- ✅ 错误处理是否完善？
+- ✅ 是否有单元测试？
 
-**PR 描述模板**：
+**性能与安全**：
+- ✅ 是否有性能问题？
+- ✅ 是否有安全漏洞？
+- ✅ 是否处理敏感数据？
+- ✅ 是否有 SQL 注入风险？
+
+---
+
+#### PR 模板
+
 ```markdown
-## 变更说明
-- 新增用户登录页面
-- 实现 JWT 认证
-- 添加会话管理
+## 描述
+简要说明此 PR 的目的和变更内容
 
-## 相关 Issue
+## 变更类型
+- [ ] 新功能
+- [ ] Bug 修复
+- [ ] 文档更新
+- [ ] 代码重构
+- [ ] 性能优化
+
+## 测试
+- [ ] 已添加单元测试
+- [ ] 已进行手动测试
+- [ ] 测试覆盖率达标
+
+## 截图（如适用）
+添加 UI 变更的截图
+
+## 关联 Issue
 Closes #123
-
-## 测试说明
-- [ ] 单元测试通过
-- [ ] 手动测试登录流程
-- [ ] 测试异常场景
-
-## 截图
-（如有 UI 变更）
-
-## 检查清单
-- [ ] 代码符合规范
-- [ ] 添加了必要的测试
-- [ ] 更新了文档
 ```
 
 ---
 
-### 7.6 分支保护策略
+### 7.5 权限管理
 
-#### GitHub 分支保护
+#### 分支保护规则
 
-**保护规则**：
-1. **要求 PR 审查**
-   - 至少 1 人批准
-   - 禁止强制推送
-   - 要求状态检查通过
+> **分支保护**：防止意外推送、强制代码审查、要求 CI 通过
 
-2. **要求状态检查**
-   - CI/CD 流水线通过
-   - 测试覆盖率达标
-   - 代码质量检查通过
+**GitHub 分支保护设置**：
+```
+Settings → Branches → Branch protection rules
 
-3. **要求签名提交**
-   - 所有提交必须 GPG 签名
-   - 防止冒充提交
+添加规则：
+✓ Require a pull request before merging
+  - Require approvals: 1
+  - Dismiss stale pull request approvals
+✓ Require status checks to pass
+  - CI/CD pipeline
+  - Code coverage
+✓ Require linear history
+✓ Include administrators
+```
 
 ---
 
-### 7.7 版本发布流程
+#### 团队权限模型
 
-#### 发布前检查清单
+| 角色 | 权限 | 适用场景 |
+|:---|:---|:---|
+| **Read** | 查看代码、创建 Issue | 初级开发者、外部贡献者 |
+| **Triage** | Read + 管理 Issue/PR | 社区管理员 |
+| **Write** | 推送代码、创建分支 | 核心开发者 |
+| **Maintain** | Write + 管理分支/标签 | 技术负责人 |
+| **Admin** | 所有权限（包括删除仓库） | 仓库所有者 |
 
-```markdown
-## 发布前检查
-- [ ] 所有功能测试通过
-- [ ] 代码审查完成
-- [ ] 更新 CHANGELOG.md
-- [ ] 更新版本号
-- [ ] 更新文档
-- [ ] 备份数据库
-- [ ] 通知相关人员
+---
 
-## 发布步骤
-1. 创建 release 分支
-2. 更新版本号和变更日志
-3. 创建 PR 并审查
-4. 合并到 main
-5. 打标签
-6. 推送到远程
-7. 部署到生产
-8. 验证功能
-9. 通知用户
+### 7.6 CI/CD 集成
+
+#### GitHub Actions 示例
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Run tests
+        run: pytest --cov=src
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t app:${{ github.sha }} .
+      
+      - name: Push to registry
+        run: docker push app:${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to production
+        run: ./deploy.sh
+```
+
+---
+
+### 7.7  monorepo 多项目管理
+
+#### Monorepo 概念
+
+> **Monorepo**：多个项目共享同一个 Git 仓库，便于代码复用和原子提交
+
+**优势**：
+- ✅ 代码复用更方便
+- ✅ 跨项目修改原子化
+- ✅ 统一版本管理
+- ✅ 简化依赖管理
+
+**挑战**：
+- ⚠️ 仓库体积大
+- ⚠️ CI/CD 复杂度高
+- ⚠️ 权限管理困难
+
+---
+
+#### Monorepo 目录结构
+
+```
+monorepo/
+├── packages/
+│   ├── core/           # 核心库
+│   ├── ui/             # UI 组件库
+│   ├── api/            # API 服务
+│   └── web/            # Web 应用
+├── apps/
+│   ├── admin/          # 管理后台
+│   └── mobile/         # 移动端
+├── tools/              # 工具脚本
+├── .github/            # CI/CD 配置
+└── package.json        # 根配置
+```
+
+---
+
+#### Monorepo 工具
+
+**Nx**：
+```bash
+# 安装 Nx
+npx create-nx-workspace my-workspace
+
+# 生成库
+nx generate @nx/js:library core
+
+# 运行测试
+nx test core
+
+# 构建受影响的项目
+nx affected --target=build
+```
+
+**Turborepo**：
+```bash
+# turbo.json 配置
+{
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "test": {
+      "dependsOn": ["build"]
+    }
+  }
+}
+
+# 运行
+npx turbo run build
 ```
 
 ---
