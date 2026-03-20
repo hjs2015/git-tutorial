@@ -5507,6 +5507,431 @@ gitGraph
 | **发布前** | 版本号更新 | `npm version` |
 | **部署后** | 监控正常 | 生产环境检查 |
 
+### 7.9 分支合并冲突实战案例
+
+> 💥 **冲突不可避免**：掌握解决技巧，化冲突为协作机会
+
+---
+
+#### 场景 1：文件内容冲突（同一行修改）
+
+**冲突产生**：
+```bash
+# 开发者 A 在 main 分支修改了 config.js 第 5 行
+git switch main
+# 编辑 config.js
+const API_URL = 'https://api.example.com/v1';
+
+git add config.js
+git commit -m "config: update API endpoint"
+git push origin main
+
+# 同时，开发者 B 在 feature 分支也修改了同一行
+git switch feature/new-feature
+# 编辑 config.js
+const API_URL = 'https://api.new-example.com/v2';
+
+git add config.js
+git commit -m "config: use new API version"
+git push origin feature/new-feature
+```
+
+**合并时冲突**：
+```bash
+# 创建 PR 后合并
+$ git merge feature/new-feature
+Auto-merging config.js
+CONFLICT (content): Merge conflict in config.js
+Automatic merge failed; fix conflicts and then commit the result.
+
+# 查看冲突状态
+git status
+# 输出：
+# both modified: config.js
+```
+
+**解决步骤**：
+
+**步骤 1：打开冲突文件**
+```bash
+code config.js  # VS Code 打开
+```
+
+**步骤 2：查看冲突标记**
+```javascript
+// <<<<<<< HEAD
+// 当前分支（main）的代码
+const API_URL = 'https://api.example.com/v1';
+// =======
+// 要合并的分支（feature）的代码
+const API_URL = 'https://api.new-example.com/v2';
+// >>>>>>> feature/new-feature
+```
+
+**步骤 3：编辑解决冲突**
+```javascript
+// 方案 1：保留新版本（推荐）
+const API_URL = 'https://api.new-example.com/v2';
+
+// 方案 2：兼容两个版本
+const API_URL = process.env.API_VERSION === 'v1'
+  ? 'https://api.example.com/v1'
+  : 'https://api.new-example.com/v2';
+
+// 方案 3：使用配置化
+const API_CONFIG = {
+  v1: 'https://api.example.com/v1',
+  v2: 'https://api.new-example.com/v2'
+};
+const API_URL = API_CONFIG.v2;
+```
+
+**步骤 4：标记解决并提交**
+```bash
+git add config.js
+git commit -m "fix: resolve config.js merge conflict
+
+- Use new API v2 endpoint
+- Maintain backward compatibility
+
+Refs: PR-123"
+```
+
+---
+
+#### 场景 2：分支合并冲突（多人修改同一文件）
+
+**冲突产生**：
+```bash
+# 开发者 A 和 B 同时修改 src/auth.js
+
+# A 的修改（添加登录功能）
+git switch feature/login
+# 在 src/auth.js 添加 login() 函数
+function login(username, password) {
+  return authenticate(username, password);
+}
+
+git add src/auth.js
+git commit -m "feat: add login function"
+git push origin feature/login
+# PR 合并到 develop ✓
+
+# B 的修改（添加注册功能，也修改了 src/auth.js）
+git switch develop
+git switch -c feature/register
+# 在 src/auth.js 添加 register() 函数
+function register(username, email, password) {
+  return createUser(username, email, password);
+}
+
+git add src/auth.js
+git commit -m "feat: add register function"
+git push origin feature/register
+```
+
+**合并时冲突**：
+```bash
+# B 创建 PR 后，发现冲突
+$ git merge feature/register
+Auto-merging src/auth.js
+CONFLICT (content): Merge conflict in src/auth.js
+
+# 查看冲突
+git diff --name-only --diff-filter=U
+# 输出：src/auth.js
+```
+
+**解决步骤**：
+
+**步骤 1：查看冲突内容**
+```bash
+git diff src/auth.js
+# 输出：
+# <<<<<<< HEAD
+# // feature/register 的修改
+# function register(username, email, password) {
+#   return createUser(username, email, password);
+# }
+# =======
+# // develop 已有 feature/login 的修改
+# function login(username, password) {
+#   return authenticate(username, password);
+# }
+# >>>>>>> develop
+```
+
+**步骤 2：合并两个功能**
+```javascript
+// src/auth.js - 解决后
+// 认证模块
+// @module auth
+
+/**
+ * 用户登录
+ * @param {string} username - 用户名
+ * @param {string} password - 密码
+ * @returns {Promise<Token>} JWT token
+ */
+function login(username, password) {
+  return authenticate(username, password);
+}
+
+/**
+ * 用户注册
+ * @param {string} username - 用户名
+ * @param {string} email - 邮箱
+ * @param {string} password - 密码
+ * @returns {Promise<User>} 新用户对象
+ */
+function register(username, email, password) {
+  return createUser(username, email, password);
+}
+
+// 导出
+module.exports = { login, register };
+```
+
+**步骤 3：测试并提交**
+```bash
+# 运行测试确保功能正常
+npm test
+
+# 标记解决
+git add src/auth.js
+git commit -m "fix: merge login and register functions
+
+- Combine both authentication features
+- Add JSDoc comments
+- Export both functions
+
+Refs: PR-125, PR-126"
+```
+
+---
+
+#### 场景 3：删除文件冲突
+
+**冲突产生**：
+```bash
+# 开发者 A 删除了旧文件
+git switch develop
+git rm src/legacy.js
+git commit -m "refactor: remove legacy code"
+git push origin develop
+
+# 开发者 B 在 feature 分支修改了同一文件
+git switch feature/old-feature
+# 编辑 src/legacy.js
+# 添加了新功能代码
+
+git add src/legacy.js
+git commit -m "feat: add legacy enhancement"
+git push origin feature/old-feature
+```
+
+**合并时冲突**：
+```bash
+$ git merge feature/old-feature
+CONFLICT (modify/delete): src/legacy.js deleted in develop and modified in feature/old-feature
+```
+
+**解决方案**：
+
+**方案 1：保留修改（文件仍有价值）**
+```bash
+# 恢复文件
+git checkout HEAD src/legacy.js
+
+# 编辑文件，合并需要的功能
+# ... 手动合并代码 ...
+
+git add src/legacy.js
+git commit -m "fix: restore legacy.js with new features"
+```
+
+**方案 2：确认删除（文件确实不需要）**
+```bash
+# 确认删除
+git rm src/legacy.js
+git commit -m "fix: confirm legacy.js removal"
+```
+
+**方案 3：迁移功能（推荐）**
+```bash
+# 将功能迁移到新文件
+git checkout HEAD src/legacy.js
+mv src/legacy.js src/modern-legacy.js
+git add src/modern-legacy.js
+git rm src/legacy.js
+git commit -m "refactor: migrate legacy features to modern module"
+```
+
+---
+
+#### 场景 4：二进制文件冲突
+
+**冲突产生**：
+```bash
+# 设计师 A 和 B 同时修改了 logo.png
+# Git 无法自动合并二进制文件
+```
+
+**解决方案**：
+
+**方案 1：沟通协调（推荐）**
+```bash
+# 查看谁修改了文件
+git log --oneline -10 -- logo.png
+
+# 联系对方协调
+# "我看到你也修改了 logo.png，我们需要同步一下"
+```
+
+**方案 2：使用外部合并工具**
+```bash
+# 配置使用图形工具
+git config --global merge.tool p4merge
+git config --global mergetool.p4merge.cmd "p4merge \"$LOCAL\" \"$REMOTE\" \"$BASE\" \"$MERGED\""
+
+# 解决冲突
+git mergetool --tool=p4merge logo.png
+```
+
+**方案 3：手动选择版本**
+```bash
+# 保留当前版本
+git checkout --ours logo.png
+
+# 或保留传入版本
+git checkout --theirs logo.png
+
+git add logo.png
+git commit -m "fix: resolve logo.png conflict (use theirs)"
+```
+
+---
+
+#### 使用工具解决冲突
+
+**VS Code（推荐）**：
+```bash
+# 安装 GitLens 扩展
+
+# 冲突文件显示：
+# [Accept Current] [Accept Incoming] [Compare Changes]
+
+# 点击选择保留的代码
+# 或使用三向对比视图
+```
+
+**Meld（图形化）**：
+```bash
+# 安装
+sudo apt install meld
+
+# 配置
+git config --global merge.tool meld
+git config --global mergetool.meld.cmd "meld \"$LOCAL\" \"$BASE\" \"$REMOTE\""
+
+# 使用
+git mergetool
+```
+
+**GitKraken**：
+- 自动检测冲突
+- 三向对比视图（本地/远程/合并结果）
+- 点击选择代码块
+- 实时预览合并结果
+
+---
+
+#### 预防冲突最佳实践
+
+**1. 频繁同步**
+```bash
+# 每天至少 2 次
+git pull --rebase origin develop
+```
+
+**2. 小步提交**
+```bash
+# 每次提交功能点尽量小
+git add -p  # 交互式暂存，分块提交
+```
+
+**3. 沟通协调**
+- 团队群沟通修改计划
+- 避免同时修改同一文件
+- 使用 CODEOWNERS 指定审查者
+
+**4. 使用变基保持同步**
+```bash
+git fetch origin
+git rebase origin/develop
+git rebase --continue
+```
+
+**5. 模块化设计**
+- 减少文件冲突概率
+- 清晰的代码边界
+- 单一职责原则
+
+---
+
+#### 冲突解决检查清单
+
+| 步骤 | 检查项 | 命令 |
+|:---|:---|:---|
+| **检测** | 查看冲突文件 | `git status` |
+| **分析** | 查看冲突内容 | `git diff --name-only` |
+| **解决** | 编辑冲突文件 | 手动编辑/工具 |
+| **测试** | 运行测试 | `npm test` |
+| **标记** | 标记解决 | `git add <file>` |
+| **提交** | 提交解决 | `git commit` |
+| **验证** | 推送验证 | `git push` |
+
+---
+
+#### 常见错误与解决方案
+
+**错误 1：忘记测试就提交**
+```bash
+# ❌ 错误：直接提交
+git add .
+git commit -m "fix: resolve conflict"
+
+# ✅ 正确：先测试
+npm test
+git add .
+git commit -m "fix: resolve conflict (tests pass)"
+```
+
+**错误 2：接受错误的版本**
+```bash
+# ❌ 错误：不小心接受了错误版本
+git checkout --ours config.js  # 应该用 --theirs
+
+# ✅ 正确：撤销重做
+git reset HEAD config.js
+git checkout --theirs config.js
+git add config.js
+```
+
+**错误 3：提交信息不规范**
+```bash
+# ❌ 错误
+git commit -m "fix conflict"
+
+# ✅ 正确
+git commit -m "fix: resolve config.js merge conflict
+
+- Use new API v2 endpoint
+- Maintain backward compatibility
+
+Refs: PR-123"
+```
+
 ---
 
 ## 第 8 章 Git 钩子与工程化集成
@@ -6904,6 +7329,899 @@ git log --follow src/file.js             # 文件完整历史
 | `git reflog expire` | 过期引用日志 | 全部 | `git reflog expire --expire=now --all` |
 | `git filter-branch` | 重写历史 | 全部 | `git filter-branch --force ...` ⚠️ |
 
+
+### A.9 Git 工作流实操对比
+
+> 🔄 **选择合适的工作流**：团队规模、发布频率、协作模式决定最佳实践
+
+---
+
+#### GitFlow vs Trunk-Based 对比总览
+
+| 维度 | GitFlow | Trunk-Based |
+|:---|:---|:---|
+| **适用场景** | 企业级项目、固定发布周期 | 敏捷开发、持续部署 |
+| **分支数量** | 5 种（main/develop/feature/release/hotfix） | 2 种（main/feature） |
+| **合并频率** | 低（功能完成后合并） | 高（每天多次） |
+| **发布流程** | 复杂（release 分支测试） | 简单（直接部署 main） |
+| **学习曲线** | 中等 | 低 |
+| **代码审查** | PR 合并时审查 | 小步提交 + 自动化检查 |
+| **冲突概率** | 低（分支隔离） | 高（频繁同步） |
+| **推荐工具** | Git Flow 插件 | GitHub Flow/GitLab Flow |
+
+---
+
+#### GitFlow 工作流详解
+
+**分支结构**：
+```
+main (生产) ← 随时可部署
+  ↑
+release/v1.0 (预发布) ← 测试修复
+  ↑
+develop (开发主线) ← 最新功能
+  ├── feature/login (功能分支)
+  ├── feature/payment (功能分支)
+  └── feature/user-profile (功能分支)
+
+hotfix/bug-fix (紧急修复，从 main 分出)
+```
+
+**分支命名规范**：
+```bash
+# 功能分支
+feature/user-authentication
+feature/payment-gateway
+feature/search-module
+
+# 发布分支
+release/v1.0.0
+release/v1.1.0
+release/2026-spring
+
+# 修复分支
+hotfix/login-bug-fix
+hotfix/security-patch
+
+# 分支命名规则
+{type}/{description}
+# type: feature|release|hotfix
+# description: kebab-case（短横线分隔）
+```
+
+**合并规则**：
+```bash
+# feature → develop（--no-ff，保留历史）
+git switch develop
+git merge --no-ff feature/login
+git branch -d feature/login
+
+# release → main + develop（双向合并）
+git switch main
+git merge --no-ff release/v1.0
+git tag -a v1.0.0 -m "Release v1.0.0"
+
+git switch develop
+git merge --no-ff release/v1.0
+git branch -d release/v1.0
+
+# hotfix → main + develop（紧急修复）
+git switch main
+git merge --no-ff hotfix/bug-fix
+git tag -a v1.0.1 -m "Hotfix"
+
+git switch develop
+git merge --no-ff hotfix/bug-fix
+git branch -d hotfix/bug-fix
+```
+
+**发布流程**：
+```bash
+# 1. 创建 release 分支
+git switch develop
+git switch -c release/v1.0.0
+
+# 2. 版本号更新
+npm version 1.0.0 --no-git-tag-version
+git commit -am "chore: bump version to 1.0.0"
+
+# 3. 测试与修复
+# ... QA 测试，修复 Bug ...
+
+# 4. 合并到 main
+git switch main
+git merge --no-ff release/v1.0.0
+git tag -a v1.0.0 -m "Release version 1.0.0"
+
+# 5. 合并回 develop
+git switch develop
+git merge --no-ff release/v1.0.0
+
+# 6. 删除 release 分支
+git branch -d release/v1.0.0
+
+# 7. 推送所有更改
+git push origin main develop --tags
+```
+
+**适用团队**：
+- ✅ 5 人以上中型团队
+- ✅ 固定发布周期（如每 2 周）
+- ✅ 需要严格的版本管理
+- ✅ 有专门的 QA 测试流程
+
+---
+
+#### Trunk-Based 工作流详解
+
+**分支结构**：
+```
+main (Trunk) ← 随时可部署
+  ├── feature/login (短命分支，<1 天)
+  ├── feature/payment (短命分支，<1 天)
+  └── feature/search (短命分支，<1 天)
+```
+
+**分支命名规范**：
+```bash
+# 功能分支（短命，当天合并）
+feature/login-button
+feature/cart-update
+feature/fix-typo
+
+# 修复分支
+fix/login-error
+fix/typo-homepage
+
+# 实验分支（可能不合并）
+experiment/new-algorithm
+prototype/ai-feature
+
+# 分支命名规则
+{type}/{description}
+# type: feature|fix|experiment|prototype
+# description: kebab-case，简短描述
+```
+
+**合并规则**：
+```bash
+# 小步快跑，频繁合并
+git switch main
+git pull --rebase origin main
+
+git switch -c feature/small-change
+# ... 开发（<4 小时）...
+git add .
+git commit -m "feat: add login button"
+
+# 推送并创建 PR
+git push -u origin feature/small-change
+# GitHub PR → 自动化测试 → 审查通过 → 合并
+
+# 或使用 GitHub CLI
+gh pr create --title "feat: add login button" --body "Closes #123"
+gh pr merge --merge --delete-branch
+```
+
+**发布流程**：
+```bash
+# 持续部署（每次提交到 main 自动部署）
+# 1. 开发者推送到 feature 分支
+git push origin feature/login
+
+# 2. 创建 Pull Request
+# GitHub 网页或 gh pr create
+
+# 3. 自动化 CI 检查
+# - 运行测试
+# - 代码质量检查
+# - 构建验证
+
+# 4. 代码审查
+# 团队成员审查 PR
+
+# 5. 合并到 main
+# PR 合并（Squash and Merge）
+
+# 6. 自动部署
+# GitHub Actions / Jenkins 自动部署到生产
+
+# 7. 功能开关（可选）
+# 使用 Feature Flag 控制新功能可见性
+```
+
+**Feature Flag 示例**：
+```javascript
+// config/features.js
+const FEATURES = {
+  newLogin: process.env.FEATURE_NEW_LOGIN === 'true',
+  darkMode: process.env.FEATURE_DARK_MODE === 'true'
+};
+
+// 使用
+if (FEATURES.newLogin) {
+  // 新登录流程
+} else {
+  // 旧登录流程
+}
+```
+
+**适用团队**：
+- ✅ 小型敏捷团队（<10 人）
+- ✅ 持续部署（每天多次发布）
+- ✅ 高度自动化测试
+- ✅ 快速迭代，快速反馈
+
+---
+
+#### 工作流选择决策树
+
+```mermaid
+graph TD
+    A[开始选择工作流] --> B{团队规模？}
+    B -->|<5 人 | C{发布频率？}
+    B -->|5-20 人 | D{发布周期？}
+    B -->|>20 人 | E[GitFlow]
+    
+    C -->|每天多次 | F[Trunk-Based]
+    C -->|每周 1 次 | F
+    
+    D -->|固定周期 2 周 +| E
+    D -->|灵活发布 | G[GitHub Flow]
+    
+    E --> H[配置 Git Flow]
+    F --> I[配置 CI/CD]
+    G --> I
+    
+    H --> J[开始协作]
+    I --> J
+```
+
+---
+
+#### GitHub Flow（简化版 Trunk-Based）
+
+**流程**：
+```
+1. 从 main 创建分支
+   ↓
+2. 开发功能
+   ↓
+3. 创建 Pull Request
+   ↓
+4. 讨论与审查
+   ↓
+5. 自动化测试
+   ↓
+6. 合并到 main
+   ↓
+7. 立即部署
+```
+
+**命令速查**：
+```bash
+# 1. 创建分支
+git switch main
+git pull
+git switch -c feature/new-feature
+
+# 2. 开发并提交
+git add .
+git commit -m "feat: add new feature"
+
+# 3. 推送
+git push -u origin feature/new-feature
+
+# 4. 创建 PR（GitHub 网页或 CLI）
+gh pr create --title "feat: new feature" --body "Closes #123"
+
+# 5. 审查通过后合并
+gh pr merge --merge --delete-branch
+
+# 6. 自动部署（GitHub Actions）
+```
+
+---
+
+#### GitLab Flow（介于两者之间）
+
+**分支结构**：
+```
+main ← 持续部署到生产
+  ↑
+pre-production ← 部署到预发布环境
+  ↑
+feature/login ← 功能开发
+```
+
+**环境分支**：
+```bash
+# 生产环境
+main
+
+# 预发布环境
+pre-production
+
+# 测试环境
+staging
+
+# 功能分支
+feature/*
+```
+
+**发布流程**：
+```bash
+# 1. 功能开发
+git switch -c feature/login
+# ... 开发 ...
+git push -u origin feature/login
+
+# 2. 合并到 main（自动部署到生产）
+# Merge Request → CI/CD → 生产
+
+# 3. 或先部署到预发布
+git switch pre-production
+git merge feature/login
+git push origin pre-production
+# 自动部署到预发布环境
+
+# 4. 验证后部署到生产
+git switch main
+git merge pre-production
+git push origin main
+```
+
+---
+
+#### 工作流对比总结表
+
+| 场景 | GitFlow | Trunk-Based | GitHub Flow | GitLab Flow |
+|:---|:---:|:---:|:---:|:---:|
+| **创业公司** | ❌ | ✅ | ✅ | ⭕ |
+| **中型企业** | ✅ | ⭕ | ⭕ | ✅ |
+| **大型企业** | ✅ | ❌ | ❌ | ⭕ |
+| **SaaS 产品** | ⭕ | ✅ | ✅ | ✅ |
+| **移动 App** | ✅ | ⭕ | ⭕ | ✅ |
+| **开源项目** | ⭕ | ⭕ | ✅ | ✅ |
+| **外包项目** | ✅ | ❌ | ❌ | ⭕ |
+
+**符号说明**：
+- ✅ 强烈推荐
+- ⭕ 可以考虑
+- ❌ 不太适合
+
+---
+
+#### 实战建议
+
+**新手团队（从简单开始）**：
+```bash
+# 推荐：GitHub Flow
+1. main 分支永远可部署
+2. 功能分支开发
+3. PR 审查合并
+4. 自动部署
+
+# 工具：GitHub + Actions
+```
+
+**成长团队（逐步规范）**：
+```bash
+# 推荐：GitLab flow
+1. 添加 pre-production 环境
+2. 多环境部署
+3. 自动化测试
+
+# 工具：GitLab CI/CD
+```
+
+**成熟团队（严格流程）**：
+```bash
+# 推荐：GitFlow
+1. 完整分支模型
+2. 严格版本管理
+3. QA 测试流程
+
+# 工具：Git Flow + Jira + Jenkins
+```
+
+---
+
+#### 迁移指南
+
+**从 GitFlow 迁移到 Trunk-Based**：
+```bash
+# 1. 简化分支结构
+git branch -d develop  # 删除 develop
+git branch -d release/*  # 删除 release 分支
+
+# 2. 调整工作流程
+# - 功能分支生命周期缩短到<1 天
+# - 每天多次合并到 main
+# - 使用 Feature Flag 替代 release 分支
+
+# 3. 加强自动化
+# - 完善 CI/CD 流水线
+# - 提高测试覆盖率
+# - 自动化代码审查
+
+# 4. 团队培训
+# - 小步提交习惯
+# - 频繁同步代码
+# - 快速反馈文化
+```
+
+**从 Trunk-Based 迁移到 GitFlow**：
+```bash
+# 1. 创建 develop 分支
+git switch main
+git switch -c develop
+git push -u origin develop
+
+# 2. 配置 Git Flow
+git flow init -d
+
+# 3. 调整工作流程
+# - 功能从 develop 分出
+# - 合并回 develop
+# - 定期创建 release 分支
+
+# 4. 建立规范
+# - 分支命名规则
+# - 提交信息规范
+# - 代码审查流程
+```
+
+---
+
+---
+
+### A.10 超高频命令易错点速记
+
+> ⚠️ **新手必看**：避开常见陷阱，提升 Git 使用效率
+
+---
+
+#### git status 易错点
+
+**易错点 1：忽略未跟踪文件**
+```bash
+# ❌ 错误：只查看已跟踪文件
+git status
+
+# ✅ 正确：查看所有文件（包括未跟踪）
+git status -u all
+# 或
+git status --untracked-files=all
+```
+
+**易错点 2：误解红色/绿色状态**
+```bash
+# 红色 = 未暂存（unstaged）
+# 绿色 = 已暂存（staged）
+
+# ❌ 错误：看到红色就 panic
+git status
+# Changes not staged for commit:
+#   modified:   app.js (红色)
+
+# ✅ 正确：理解含义
+# 红色 = 工作区修改了，但还没 git add
+# 绿色 = 已经 git add 了，等待 commit
+```
+
+**易错点 3：忽略分支信息**
+```bash
+# ❌ 错误：不看当前分支
+git status
+# 只关注文件状态
+
+# ✅ 正确：同时检查分支
+git status
+# On branch feature/login
+# Your branch is ahead of 'origin/feature/login' by 2 commits
+#   (use "git push" to publish your local commits)
+```
+
+**速记口诀**：
+```
+红色未暂存，绿色已暂存
+分支要看清，推送别忘记
+未跟踪文件，git add 再 commit
+```
+
+---
+
+#### git add 易错点
+
+**易错点 1：git add . 添加所有文件**
+```bash
+# ❌ 错误：不小心添加了敏感文件
+git add .
+# 包含了 .env（有密码）
+
+# ✅ 正确：先检查
+git status
+git add src/  # 只添加代码目录
+# 或
+git add -p  # 交互式选择
+```
+
+**易错点 2：忘记添加新文件**
+```bash
+# ❌ 错误：只添加修改的文件
+git add .
+git commit -m "feat: add new feature"
+# 但新建的文件没添加（还是红色未跟踪）
+
+# ✅ 正确：确认所有文件
+git status
+git add .  # 确保所有文件变绿
+git commit -m "feat: add new feature"
+```
+
+**易错点 3：add 后继续修改**
+```bash
+# ❌ 错误：add 后又修改，导致不一致
+git add app.js
+# 继续修改 app.js
+git commit -m "feat: update app"
+# commit 的是 add 时的版本，不是最新版本！
+
+# ✅ 正确：重新 add
+git add app.js
+# 修改...
+git add app.js  # 重新添加最新版本
+git commit -m "feat: update app"
+```
+
+**易错点 4：git add -p 不会用**
+```bash
+# ❌ 错误：一次性添加所有更改
+git add .
+
+# ✅ 正确：分块添加（逻辑清晰）
+git add -p
+# y = yes（添加这块）
+# n = no（不添加）
+# s = split（拆分更小块）
+# q = quit（退出）
+```
+
+**速记口诀**：
+```
+add 前先看 status
+敏感文件要排除
+add 后别乱改
+分块添加更清晰
+```
+
+---
+
+#### git commit 易错点
+
+**易错点 1：提交信息不规范**
+```bash
+# ❌ 错误：信息模糊
+git commit -m "fix bug"
+git commit -m "update"
+git commit -m "asdfasdf"
+
+# ✅ 正确：遵循 Conventional Commits
+git commit -m "fix(auth): resolve login error
+
+- Add null check for user object
+- Improve error message
+
+Fixes: #123"
+```
+
+**提交信息模板**：
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**类型说明**：
+- `feat`: 新功能
+- `fix`: Bug 修复
+- `docs`: 文档更新
+- `style`: 代码格式（不影响功能）
+- `refactor`: 重构
+- `test`: 测试相关
+- `chore`: 构建工具/依赖
+
+**易错点 2：空提交**
+```bash
+# ❌ 错误：没有更改就 commit
+git commit -m "feat: add feature"
+# 输出：nothing to commit, working tree clean
+
+# ✅ 正确：先检查
+git status
+git add .
+git commit -m "feat: add feature"
+```
+
+**易错点 3：提交后才发现漏了文件**
+```bash
+# ❌ 错误：重新 commit 产生两个提交
+git commit -m "feat: add feature"
+# 发现漏了 file.js
+git add file.js
+git commit -m "add file.js"  # 产生两个提交
+
+# ✅ 正确：使用 --amend
+git commit -m "feat: add feature"
+# 发现漏了 file.js
+git add file.js
+git commit --amend --no-edit  # 修改上次提交
+```
+
+**易错点 4：提交到错误分支**
+```bash
+# ❌ 错误：在 main 分支直接提交
+git switch main
+git commit -m "feat: add feature"  # 应该在 feature 分支！
+
+# ✅ 正确：撤销并移到正确分支
+git reset --hard HEAD~1  # 撤销提交
+git switch -c feature/new-feature
+git commit -m "feat: add feature"
+```
+
+**速记口诀**：
+```
+提交信息要规范
+类型范围加描述
+提交之前先 add
+amend 修改不重复
+分支确认再提交
+```
+
+---
+
+#### git push 易错点
+
+**易错点 1：忘记设置上游**
+```bash
+# ❌ 错误：每次都要输入完整命令
+git push origin feature/login
+
+# ✅ 正确：首次设置上游
+git push -u origin feature/login
+# 之后只需
+git push
+```
+
+**易错点 2：推送被拒绝**
+```bash
+# ❌ 错误：直接强制推送
+git push --force
+# 可能覆盖别人的代码！
+
+# ✅ 正确：使用安全强制推送
+git push --force-with-lease
+# 或先拉取再推送
+git pull --rebase
+git push
+```
+
+**易错点 3：推送错误分支**
+```bash
+# ❌ 错误：在 main 分支推送 feature 代码
+git switch main
+git push origin main  # 但代码是 feature 的！
+
+# ✅ 正确：确认分支
+git branch  # 查看当前分支
+git switch feature/login
+git push -u origin feature/login
+```
+
+**速记口诀**：
+```
+首次推送加 -u
+强制推送用 --force-with-lease
+推送之前看分支
+```
+
+---
+
+#### git pull 易错点
+
+**易错点 1：pull 产生合并提交**
+```bash
+# ❌ 错误：历史混乱
+git pull
+# 产生 "Merge branch 'main' into feature"
+
+# ✅ 正确：使用变基
+git pull --rebase
+# 历史保持线性
+```
+
+**易错点 2：pull 前不保存更改**
+```bash
+# ❌ 错误：工作区有更改直接 pull
+git pull
+# 冲突！
+
+# ✅ 正确：先暂存更改
+git stash
+git pull --rebase
+git stash pop
+```
+
+**速记口诀**：
+```
+pull 之前先 stash
+rebase 保持历史清
+```
+
+---
+
+#### git merge 易错点
+
+**易错点 1：合并错误分支**
+```bash
+# ❌ 错误：在 main 分支合并 feature
+git switch main
+git merge feature  # 但应该先测试！
+
+# ✅ 正确：先在 develop 测试
+git switch develop
+git merge feature
+# 测试通过后
+git switch main
+git merge develop
+```
+
+**易错点 2：忘记 --no-ff**
+```bash
+# ❌ 错误：快进合并，丢失分支信息
+git merge feature/login
+
+# ✅ 正确：保留分支历史
+git merge --no-ff feature/login
+# 产生合并提交，保留功能完整性
+```
+
+**速记口诀**：
+```
+合并之前先测试
+no-ff 保留历史
+```
+
+---
+
+#### git reset 易错点（高危⚠️）
+
+**易错点 1：--hard 丢失代码**
+```bash
+# ❌ 错误：危险操作
+git reset --hard HEAD~1
+# 所有未提交代码丢失！
+
+# ✅ 正确：先用 --soft 或 --mixed
+git reset --soft HEAD~1  # 保留更改
+# 或
+git reset HEAD~1  # 默认 mixed，保留工作区
+```
+
+**易错点 2：重置已推送的提交**
+```bash
+# ❌ 错误：重置已推送的提交
+git reset --hard HEAD~1
+git push --force
+# 队友的代码会冲突！
+
+# ✅ 正确：使用 revert
+git revert HEAD
+git push
+```
+
+**速记口诀**：
+```
+reset --hard 最危险
+已推送用 revert
+未推送才用 reset
+```
+
+---
+
+#### git checkout 易错点
+
+**易错点 1：checkout 覆盖未提交更改**
+```bash
+# ❌ 错误：覆盖工作区
+git checkout -- app.js
+# 未提交的修改丢失！
+
+# ✅ 正确：先暂存
+git stash
+git checkout -- app.js
+git stash pop
+```
+
+**易错点 2：checkout 创建分支拼写错误**
+```bash
+# ❌ 错误：拼写错误创建错分支
+git checkout -b fetaure/login  # feature 拼错
+
+# ✅ 正确：仔细检查
+git checkout -b feature/login
+# 或使用自动补全
+git checkout -b feat<Tab>
+```
+
+**速记口诀**：
+```
+checkout 会覆盖
+先 stash 再操作
+分支名称要检查
+```
+
+---
+
+#### 综合速查表
+
+| 命令 | 易错点 | 正确做法 | 危险度 |
+|:---|:---|:---|:---:|
+| **git status** | 忽略分支信息 | 同时检查分支状态 | ⭐ |
+| **git add .** | 添加敏感文件 | 先检查，或用 add -p | ⭐⭐ |
+| **git commit** | 信息不规范 | 遵循 Conventional Commits | ⭐ |
+| **git push --force** | 覆盖别人代码 | 用 --force-with-lease | ⭐⭐⭐⭐⭐ |
+| **git pull** | 产生合并提交 | 用 --rebase | ⭐⭐ |
+| **git merge** | 快进合并 | 用 --no-ff | ⭐⭐ |
+| **git reset --hard** | 丢失代码 | 先用 --soft/mixed | ⭐⭐⭐⭐⭐ |
+| **git checkout --** | 覆盖更改 | 先 stash | ⭐⭐⭐⭐ |
+
+---
+
+#### 新手保护建议
+
+**1. 启用保护配置**
+```bash
+# 防止意外覆盖
+git config --global push.default simple
+git config --global merge.ff only
+git config --global rebase.autoStash true
+```
+
+**2. 使用别名简化**
+```bash
+# ~/.gitconfig
+[alias]
+    s = status
+    a = add
+    c = commit
+    p = push
+    pl = pull --rebase
+    lg = log --oneline --graph --all
+```
+
+**3. 养成好习惯**
+```bash
+# 操作前先看
+git status
+git branch
+
+# 操作后验证
+git log --oneline -3
+git status
+```
+
+**4. 备份重要分支**
+```bash
+# 创建备份标签
+git tag backup-before-change
+# 出问题时恢复
+git reset --hard backup-before-change
+```
 
 ---
 
