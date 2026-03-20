@@ -195,7 +195,7 @@ git version 2.25.1
 ```bash
 # 全局配置（推荐）
 git config --global user.name "example-user"
-git config --global user.email "user@example.com"
+git config --global user.email "1656126280@qq.com"
 
 # 仓库级配置
 cd /path/to/repo
@@ -430,7 +430,7 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
 **交互过程**：
 ```bash
-$ ssh-keygen -t ed25519 -C "user@example.com"
+$ ssh-keygen -t ed25519 -C "1656126280@qq.com"
 Generating public/private ed25519 key pair.
 Enter file in which to save the key (/home/user/.ssh/id_ed25519): 
 # 直接回车使用默认路径
@@ -447,7 +447,7 @@ Enter same passphrase again:
 Your identification has been saved in /home/user/.ssh/id_ed25519
 Your public key has been saved in /home/user/.ssh/id_ed25519.pub
 The key fingerprint is:
-SHA256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxx user@example.com
+SHA256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1656126280@qq.com
 ```
 
 **说明**：
@@ -474,7 +474,7 @@ Get-Content ~/.ssh/id_ed25519.pub | Set-Clipboard
 
 **输出示例**：
 ```bash
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@example.com
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... 1656126280@qq.com
 ```
 
 ---
@@ -551,7 +551,7 @@ git config user.email
 ```bash
 $ git config --list
 user.name=example-user
-user.email=user@example.com
+user.email=1656126280@qq.com
 color.ui=true
 init.defaultbranch=main
 core.quotepath=false
@@ -1426,7 +1426,7 @@ git show --name-only 8f3a2b1
 ```bash
 $ git show 8f3a2b1
 commit 8f3a2b1234567890abcdef1234567890abcdef12
-Author: Example User <user@example.com>
+Author: hjs2015 <1656126280@qq.com>
 Date:   Sat Mar 21 15:00:00 2026 +0800
 
     feat: add user login module
@@ -2639,7 +2639,7 @@ git show v1.0
 ```bash
 $ git show v1.0
 commit 921d88e7bc8de6b8575e77513ee9805021ffc5ef
-Author: Example User <user@example.com>
+Author: hjs2015 <1656126280@qq.com>
 Date:   Sat Mar 21 14:50:00 2026 +0800
 
     merge testing to main
@@ -2668,13 +2668,13 @@ git tag -a v1.0
 ```bash
 $ git show v1.0
 tag v1.0
-Tagger: Example User <user@example.com>
+Tagger: hjs2015 <1656126280@qq.com>
 Date:   Sat Mar 21 15:00:00 2026 +0800
 
 版本 1.0 - 初始发布
 
 commit 921d88e7bc8de6b8575e77513ee9805021ffc5ef
-Author: Example User <user@example.com>
+Author: hjs2015 <1656126280@qq.com>
 Date:   Sat Mar 21 14:50:00 2026 +0800
 
     merge testing to main
@@ -3391,7 +3391,7 @@ Commit 对象
 │ commit abc123...                │
 │ tree def456...  ← 指向 Tree     │
 │ parent 789ghi... ← 父提交       │
-│ author Example <user@example.com>│
+│ author Example <1656126280@qq.com>│
 │ date 2026-03-21 10:30:00        │
 │ message "Fix login bug"         │
 └─────────────────────────────────┘
@@ -3432,8 +3432,8 @@ git cat-file -p abc123...
 # 输出：
 # tree def456...
 # parent 789ghi...
-# author Example <user@example.com> 1711008600 +0800
-# committer Example <user@example.com> 1711008600 +0800
+# author Example <1656126280@qq.com> 1711008600 +0800
+# committer Example <1656126280@qq.com> 1711008600 +0800
 # 
 # Fix login bug
 ```

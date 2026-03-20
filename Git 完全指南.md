@@ -709,13 +709,13 @@ git show v1.0
 ```bash
 [root@gitlab /git_data]# git show v1.0
 tag v1.0
-Tagger: Example User <user@example.com>
+Tagger: hjs2015 <1656126280@qq.com>
 Date:   Fri Mar 21 15:00:00 2026 +0800
 
 版本 1.0 - 初始发布
 
 commit 921d88e7bc8de6b8575e77513ee9805021ffc5ef
-Author: Example User <user@example.com>
+Author: hjs2015 <1656126280@qq.com>
 Date:   Fri Mar 21 14:50:00 2026 +0800
 
     merge testing to master
