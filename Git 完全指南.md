@@ -567,7 +567,7 @@ test                        # 太模糊
 new-feature                 # 什么新功能？
 fix                         # 修复什么？
 aaa                         # 毫无意义
-zhangya-test                # 包含个人信息
+example-user-test                # 包含个人信息
 ```
 
 ---
@@ -709,13 +709,13 @@ git show v1.0
 ```bash
 [root@gitlab /git_data]# git show v1.0
 tag v1.0
-Tagger: 黄金生 <526195417@qq.com>
+Tagger: Example User <user@example.com>
 Date:   Fri Mar 21 15:00:00 2026 +0800
 
 版本 1.0 - 初始发布
 
 commit 921d88e7bc8de6b8575e77513ee9805021ffc5ef
-Author: 黄金生 <526195417@qq.com>
+Author: Example User <user@example.com>
 Date:   Fri Mar 21 14:50:00 2026 +0800
 
     merge testing to master

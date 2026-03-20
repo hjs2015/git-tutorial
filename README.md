@@ -317,7 +317,7 @@ git reflog
 
 1. **提交 Issue**: https://github.com/hjs2015/git-tutorial/issues
 2. **提交 PR**: https://github.com/hjs2015/git-tutorial/pulls
-3. **邮件联系**: 526195417@qq.com
+3. **邮件联系**: user@example.com
 
 ---
 
