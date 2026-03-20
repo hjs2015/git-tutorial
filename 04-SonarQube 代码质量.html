@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04-SonarQube 代码质量 - Git 完全教程</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292e;
+            background: #f6f8fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .nav-back:hover {
+            background: #5568d3;
+        }
+        .markdown-body {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .markdown-body img {
+            max-width: 100%;
+        }
+        .markdown-body pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .markdown-body code {
+            background: #f6f8fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+        }
+        .markdown-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        .markdown-body table th,
+        .markdown-body table td {
+            border: 1px solid #dfe2e5;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .markdown-body table th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        .markdown-body table tr:nth-child(even) {
+            background: #f6f8fa;
+        }
+        .markdown-body blockquote {
+            border-left: 4px solid #dfe2e5;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #6a737d;
+        }
+        .markdown-body a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+        .toc {
+            background: #f6f8fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+        .toc > ul {
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #586069;
+            margin-top: 40px;
+        }
+        .footer a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        @media (max-width: 768px) {
+            .markdown-body {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📘 04-SonarQube 代码质量</h1>
+        <p>Git 完全教程 v5.0 - 从零基础到企业级实战</p>
+    </div>
+    
+    <div class="container">
+        <a href="index.html" class="nav-back">← 返回首页</a>
+        
+        <article class="markdown-body">
+            <h1 id="sonarqube"><a class="toclink" href="#sonarqube">SonarQube 代码质量管理</a></h1>
+<blockquote>
+<p>📘 <strong>CI/CD 实战版教程第四部分</strong><br />
+📌 包含：MySQL 安装、SonarQube 部署、Jenkins 集成</p>
+</blockquote>
+<hr />
+<h2 id="_1"><a class="toclink" href="#_1">目录</a></h2>
+<ul>
+<li><a href="#第 9 章-sonarqube 部署">第 9 章 SonarQube 部署</a></li>
+<li><a href="#第 10 章-sonarqube 与-jenkins 集成">第 10 章 SonarQube 与 Jenkins 集成</a></li>
+</ul>
+<hr />
+<h2 id="9-sonarqube"><a class="toclink" href="#9-sonarqube">第 9 章 SonarQube 部署</a></h2>
+<h3 id="91-mysqlsonarqube"><a class="toclink" href="#91-mysqlsonarqube">9.1 安装 MySQL（SonarQube 数据库）</a></h3>
+<blockquote>
+<p><strong>为什么需要 MySQL？</strong></p>
+<p>SonarQube 使用数据库存储：<br />
+- ✅ 代码扫描结果<br />
+- ✅ 用户信息<br />
+- ✅ 项目配置<br />
+- ✅ 历史记录</p>
+</blockquote>
+<p><strong>步骤 1</strong>：下载 MySQL</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/soft
+wget<span class="w"> </span>https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：解压</p>
+<div class="codehilite"><pre><span></span><code>tar<span class="w"> </span>zxf<span class="w"> </span>mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz<span class="w"> </span>-C<span class="w"> </span>/opt/
+mv<span class="w"> </span>/opt/mysql-5.7.28-linux-glibc2.12-x86_64<span class="w"> </span>/opt/mysql-5.7.28
+ln<span class="w"> </span>-s<span class="w"> </span>/opt/mysql-5.7.28<span class="w"> </span>/opt/mysql
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：设置环境变量</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;export PATH=</span><span class="nv">$PATH</span><span class="s2">:/opt/mysql/bin&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/profile
+<span class="nb">source</span><span class="w"> </span>/etc/profile
+
+<span class="c1"># 验证</span>
+mysql<span class="w"> </span>-V
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@sonar<span class="w"> </span>~<span class="o">]</span><span class="c1"># mysql -V</span>
+mysql<span class="w">  </span>Ver<span class="w"> </span><span class="m">14</span>.14<span class="w"> </span>Distrib<span class="w"> </span><span class="m">5</span>.7.28,<span class="w"> </span><span class="k">for</span><span class="w"> </span>linux-glibc2.12<span class="w"> </span><span class="o">(</span>x86_64<span class="o">)</span><span class="w"> </span>using<span class="w">  </span>EditLine<span class="w"> </span>wrapper
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：清除遗留环境</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 卸载 MariaDB（如果已安装）</span>
+rpm<span class="w"> </span>-qa<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>mariadb
+yum<span class="w"> </span>remove<span class="w"> </span>mariadb-libs<span class="w"> </span>-y
+
+<span class="c1"># 删除旧配置</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>/etc/my.cnf
+</code></pre></div>
+
+<p><strong>步骤 5</strong>：安装依赖</p>
+<div class="codehilite"><pre><span></span><code>yum<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>libaio-devel
+</code></pre></div>
+
+<p><strong>步骤 6</strong>：创建用户</p>
+<div class="codehilite"><pre><span></span><code>useradd<span class="w"> </span>-s<span class="w"> </span>/sbin/nologin<span class="w"> </span>-M<span class="w"> </span>mysql
+chown<span class="w"> </span>-R<span class="w"> </span>mysql.mysql<span class="w"> </span>/data/
+chown<span class="w"> </span>-R<span class="w"> </span>mysql.mysql<span class="w"> </span>/opt/mysql*
+</code></pre></div>
+
+<p><strong>步骤 7</strong>：初始化数据库</p>
+<div class="codehilite"><pre><span></span><code>mysqld<span class="w"> </span>--initialize-insecure<span class="w"> </span>--user<span class="o">=</span>mysql<span class="w"> </span>--basedir<span class="o">=</span>/opt/mysql<span class="w"> </span>--datadir<span class="o">=</span>/data/mysql_3306/
+</code></pre></div>
+
+<p>⚠️ <strong>说明</strong>：<br />
+- <code>--initialize-insecure</code>：初始密码为空<br />
+- 首次启动后需要设置密码</p>
+<p><strong>步骤 8</strong>：配置文件</p>
+<div class="codehilite"><pre><span></span><code>cat&gt;<span class="w"> </span>/etc/my.cnf<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
+<span class="s">[mysqld]</span>
+<span class="s">user=mysql</span>
+<span class="s">basedir=/opt/mysql</span>
+<span class="s">datadir=/data/mysql_3306</span>
+<span class="s">socket=/tmp/mysql.sock</span>
+
+<span class="s">[mysql]</span>
+<span class="s">socket=/tmp/mysql.sock</span>
+<span class="s">EOF</span>
+</code></pre></div>
+
+<p><strong>步骤 9</strong>：启动数据库</p>
+<div class="codehilite"><pre><span></span><code>cp<span class="w"> </span>/opt/mysql/support-files/mysql.server<span class="w"> </span>/etc/init.d/mysqld
+chkconfig<span class="w"> </span>--add<span class="w"> </span>mysqld
+systemctl<span class="w"> </span>start<span class="w"> </span>mysqld
+
+<span class="c1"># 验证</span>
+netstat<span class="w"> </span>-lntup<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">3306</span>
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@sonar<span class="w"> </span>~<span class="o">]</span><span class="c1"># netstat -lntup | grep 3306</span>
+tcp<span class="w">        </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w"> </span><span class="m">0</span>.0.0.0:3306<span class="w">            </span><span class="m">0</span>.0.0.0:*<span class="w">               </span>LISTEN<span class="w">      </span><span class="m">1234</span>/mysqld
+</code></pre></div>
+
+<p><strong>步骤 10</strong>：设置密码</p>
+<div class="codehilite"><pre><span></span><code>mysqladmin<span class="w"> </span>-u<span class="w"> </span>root<span class="w"> </span>password<span class="w"> </span><span class="m">123456</span>
+</code></pre></div>
+
+<h3 id="92-sonarqube"><a class="toclink" href="#92-sonarqube">9.2 安装 SonarQube</a></h3>
+<p><strong>步骤 1</strong>：安装 Java</p>
+<div class="codehilite"><pre><span></span><code>yum<span class="w"> </span>install<span class="w"> </span>java<span class="w"> </span>-y
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：解压</p>
+<div class="codehilite"><pre><span></span><code>unzip<span class="w"> </span>sonarqube-7.0.zip<span class="w"> </span>-d<span class="w"> </span>/opt/
+ln<span class="w"> </span>-s<span class="w"> </span>/opt/sonarqube-7.0/<span class="w"> </span>/opt/sonarqube
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：创建用户</p>
+<div class="codehilite"><pre><span></span><code>useradd<span class="w"> </span>sonar<span class="w"> </span>-M<span class="w"> </span>-s<span class="w"> </span>/sbin/nologin
+chown<span class="w"> </span>-R<span class="w"> </span>sonar.sonar<span class="w"> </span>/opt/sonarqube*
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：配置数据库连接</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/opt/sonarqube/conf/sonar.properties
+</code></pre></div>
+
+<p><strong>添加配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="na">sonar.jdbc.username</span><span class="o">=</span><span class="s">root</span>
+<span class="na">sonar.jdbc.password</span><span class="o">=</span><span class="s">123456</span>
+<span class="na">sonar.jdbc.url</span><span class="o">=</span><span class="s">jdbc:mysql://localhost:3306/sonar?useUnicode=true&amp;characterEncoding=utf8&amp;rewriteBatchedStatements=true&amp;useConfigs=maxPerformance&amp;useSSL=false</span>
+</code></pre></div>
+
+<p><strong>步骤 5</strong>：指定启动用户</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/opt/sonarqube/bin/linux-x86-64/sonar.sh
+</code></pre></div>
+
+<p><strong>添加配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">RUN_AS_USER</span><span class="o">=</span>sonar
+</code></pre></div>
+
+<p><strong>步骤 6</strong>：创建数据库</p>
+<div class="codehilite"><pre><span></span><code>mysql<span class="w"> </span>-uroot<span class="w"> </span>-p123456<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;create database sonar default character set utf8;&#39;</span>
+mysql<span class="w"> </span>-uroot<span class="w"> </span>-p123456<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;show databases;&#39;</span>
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code>+--------------------+
+<span class="p">|</span><span class="w"> </span>Database<span class="w">           </span><span class="p">|</span>
++--------------------+
+<span class="p">|</span><span class="w"> </span>information_schema<span class="w"> </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span>mysql<span class="w">              </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span>performance_schema<span class="w"> </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span>sonar<span class="w">              </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span><span class="nb">test</span><span class="w">               </span><span class="p">|</span>
++--------------------+
+</code></pre></div>
+
+<p><strong>步骤 7</strong>：编写 systemd 启动文件</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>&gt;/usr/lib/systemd/system/sonar.service<span class="s">&lt;&lt;&#39;EOF&#39;</span>
+<span class="s">[Unit]</span>
+<span class="s">Description=SonarQube Service</span>
+
+<span class="s">[Service]</span>
+<span class="s">Type=forking</span>
+<span class="s">ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start</span>
+<span class="s">ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop</span>
+<span class="s">User=sonar</span>
+<span class="s">Group=sonar</span>
+
+<span class="s">[Install]</span>
+<span class="s">WantedBy=multi-user.target</span>
+<span class="s">EOF</span>
+</code></pre></div>
+
+<p><strong>步骤 8</strong>：启动服务</p>
+<div class="codehilite"><pre><span></span><code>systemctl<span class="w"> </span>daemon-reload
+systemctl<span class="w"> </span>start<span class="w"> </span>sonar.service
+</code></pre></div>
+
+<p><strong>步骤 9</strong>：检查服务</p>
+<div class="codehilite"><pre><span></span><code>netstat<span class="w"> </span>-lntup<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>java
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@sonar<span class="w"> </span>~<span class="o">]</span><span class="c1"># netstat -lntup | grep java</span>
+tcp6<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w"> </span>:::9000<span class="w">                 </span>:::*<span class="w">                    </span>LISTEN<span class="w">      </span><span class="m">18305</span>/java
+tcp6<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w"> </span><span class="m">127</span>.0.0.1:9001<span class="w">          </span>:::*<span class="w">                    </span>LISTEN<span class="w">      </span><span class="m">18227</span>/java
+</code></pre></div>
+
+<p><strong>说明</strong>：<br />
+- <code>9000</code>：Web 访问端口<br />
+- <code>9001</code>：Elasticsearch 端口</p>
+<h3 id="93"><a class="toclink" href="#93">9.3 解决启动报错</a></h3>
+<p>⚠️ <strong>常见问题</strong>：max file descriptors 太低</p>
+<p><strong>错误日志</strong>：</p>
+<div class="codehilite"><pre><span></span><code>tail<span class="w"> </span>-f<span class="w"> </span>/opt/sonarqube/logs/es.log
+
+<span class="c1"># 看到：</span>
+max<span class="w"> </span>file<span class="w"> </span>descriptors<span class="w"> </span><span class="o">[</span><span class="m">4096</span><span class="o">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>elasticsearch<span class="w"> </span>process<span class="w"> </span>is<span class="w"> </span>too<span class="w"> </span>low,<span class="w"> </span>increase<span class="w"> </span>to<span class="w"> </span>at<span class="w"> </span>least<span class="w"> </span><span class="o">[</span><span class="m">65536</span><span class="o">]</span>
+max<span class="w"> </span>virtual<span class="w"> </span>memory<span class="w"> </span>areas<span class="w"> </span>vm.max_map_count<span class="w"> </span><span class="o">[</span><span class="m">65530</span><span class="o">]</span><span class="w"> </span>is<span class="w"> </span>too<span class="w"> </span>low,<span class="w"> </span>increase<span class="w"> </span>to<span class="w"> </span>at<span class="w"> </span>least<span class="w"> </span><span class="o">[</span><span class="m">262144</span><span class="o">]</span>
+</code></pre></div>
+
+<p><strong>解决方法</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 增加文件描述符限制</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;root - nofile 65536&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/security/limits.conf
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;sonar - nofile 65536&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/security/limits.conf
+
+<span class="c1"># 增加虚拟内存限制</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;vm.max_map_count=262144&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/sysctl.conf
+sysctl<span class="w"> </span>-p
+
+<span class="c1"># 重启 SonarQube</span>
+systemctl<span class="w"> </span>restart<span class="w"> </span>sonar.service
+</code></pre></div>
+
+<h3 id="94-sonarqube"><a class="toclink" href="#94-sonarqube">9.4 初始化 SonarQube</a></h3>
+<p><strong>步骤 1</strong>：浏览器访问</p>
+<div class="codehilite"><pre><span></span><code>http://10.0.0.203:9000
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：登录</p>
+<div class="codehilite"><pre><span></span><code>用户名：admin
+密码：admin
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：修改密码</p>
+<div class="codehilite"><pre><span></span><code><span class="n">首次登录会要求修改密码</span><span class="err">：</span>
+<span class="o">-</span><span class="w"> </span><span class="n">原密码</span><span class="err">：</span><span class="n">admin</span>
+<span class="o">-</span><span class="w"> </span><span class="n">新密码</span><span class="err">：</span><span class="n">Sonar</span><span class="mi">@2026</span><span class="err">（</span><span class="n">强密码</span><span class="err">）</span>
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：生成 Token</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击右上角头像</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">My</span><span class="w"> </span><span class="n">Account</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">Security</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Generate</span><span class="w"> </span><span class="kr">To</span><span class="n">kens</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="n">jenkins</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Type</span><span class="p">:</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Analysis</span><span class="w"> </span><span class="kr">To</span><span class="n">ken</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Generate&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">复制生成的</span><span class="w"> </span><span class="kr">To</span><span class="n">ken</span><span class="err">（</span><span class="n">只显示一次</span><span class="err">！）</span>
+</code></pre></div>
+
+<p><strong>Token 示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">4</span><span class="n">f57dfb332463fa8220be49856a0f1d27c88a142</span>
+</code></pre></div>
+
+<p>⚠️ <strong>重要</strong>：Token 只显示一次，务必保存好！</p>
+<hr />
+<h2 id="10-sonarqube-jenkins"><a class="toclink" href="#10-sonarqube-jenkins">第 10 章 SonarQube 与 Jenkins 集成</a></h2>
+<h3 id="101-sonar"><a class="toclink" href="#101-sonar">10.1 安装 Sonar 客户端</a></h3>
+<p><strong>步骤 1</strong>：下载客户端</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/opt/
+wget<span class="w"> </span>https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.0.0.1744-linux.zip
+unzip<span class="w"> </span>sonar-scanner-cli-4.0.0.1744-linux.zip<span class="w"> </span>-d<span class="w"> </span>/opt/
+ln<span class="w"> </span>-s<span class="w"> </span>sonar-scanner-4.0.0.1744-linux<span class="w"> </span>sonar-scanner
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：设置环境变量</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;export PATH=$PATH:/opt/sonar-scanner/bin&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/profile
+<span class="nb">source</span><span class="w"> </span>/etc/profile
+
+<span class="c1"># 验证</span>
+sonar-scanner<span class="w"> </span>-v
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：配置文件（可选）</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/opt/sonar-scanner/conf/sonar-scanner.properties
+</code></pre></div>
+
+<p><strong>添加配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="na">sonar.host.url</span><span class="o">=</span><span class="s">http://10.0.0.203:9000</span>
+<span class="na">sonar.login</span><span class="o">=</span><span class="s">4f57dfb332463fa8220be49856a0f1d27c88a142</span>
+<span class="na">sonar.sourceEncoding</span><span class="o">=</span><span class="s">UTF-8</span>
+</code></pre></div>
+
+<h3 id="102-sonarqube"><a class="toclink" href="#102-sonarqube">10.2 推送代码到 SonarQube</a></h3>
+<p><strong>步骤 1</strong>：进入代码目录</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/var/lib/jenkins/workspace/h5game-deploy/
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：执行扫描</p>
+<div class="codehilite"><pre><span></span><code>/opt/sonar-scanner/bin/sonar-scanner<span class="w"> </span><span class="se">\</span>
+-Dsonar.projectKey<span class="o">=</span>h5game<span class="w"> </span><span class="se">\</span>
+-Dsonar.sources<span class="o">=</span>.<span class="w"> </span><span class="se">\</span>
+-Dsonar.host.url<span class="o">=</span>http://10.0.0.203:9000<span class="w"> </span><span class="se">\</span>
+-Dsonar.login<span class="o">=</span>4f57dfb332463fa8220be49856a0f1d27c88a142
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@jenkins<span class="w"> </span>h5game<span class="o">]</span><span class="c1"># sonar-scanner \</span>
+&gt;<span class="w"> </span>-Dsonar.projectKey<span class="o">=</span>h5game<span class="w"> </span><span class="se">\</span>
+&gt;<span class="w"> </span>-Dsonar.sources<span class="o">=</span>.<span class="w"> </span><span class="se">\</span>
+&gt;<span class="w"> </span>-Dsonar.host.url<span class="o">=</span>http://10.0.0.203:9000<span class="w"> </span><span class="se">\</span>
+&gt;<span class="w"> </span>-Dsonar.login<span class="o">=</span>4f57dfb332463fa8220be49856a0f1d27c88a142
+
+INFO:<span class="w"> </span>Scanner<span class="w"> </span>configuration<span class="w"> </span>file:<span class="w"> </span>/opt/sonar-scanner/conf/sonar-scanner.properties
+INFO:<span class="w"> </span>Project<span class="w"> </span>root<span class="w"> </span>configuration<span class="w"> </span>file:<span class="w"> </span>/var/lib/jenkins/workspace/h5game/sonar-project.properties
+
+INFO:<span class="w"> </span>Analyzing<span class="w"> </span>sources
+INFO:<span class="w"> </span>------------------------------------------------------------------------
+INFO:<span class="w"> </span>EXECUTION<span class="w"> </span>SUCCESS
+INFO:<span class="w"> </span>------------------------------------------------------------------------
+INFO:<span class="w"> </span>Total<span class="w"> </span>time:<span class="w"> </span><span class="m">10</span>.123s
+INFO:<span class="w"> </span>Final<span class="w"> </span>Memory:<span class="w"> </span>12M/491M
+INFO:<span class="w"> </span>------------------------------------------------------------------------
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：查看扫描结果</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">浏览器访问</span><span class="w"> </span><span class="n">SonarQube</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">查看</span><span class="w"> </span><span class="n">h5game</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">查看</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Bugs</span><span class="err">（</span><span class="n">Bug</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Vulnerabilities</span><span class="err">（</span><span class="n">漏洞</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Code</span><span class="w"> </span><span class="n">Smells</span><span class="err">（</span><span class="n">代码异味</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Coverage</span><span class="err">（</span><span class="n">覆盖率</span><span class="err">）</span>
+</code></pre></div>
+
+<h3 id="103-jenkins-sonarqube"><a class="toclink" href="#103-jenkins-sonarqube">10.3 Jenkins 集成 SonarQube</a></h3>
+<p><strong>步骤 1</strong>：安装 SonarQube 插件</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">插件管理</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">可选插件</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">搜索</span><span class="w"> </span><span class="s">&quot;SonarQube&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;SonarQube Scanner for Jenkins&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;直接安装&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：配置 SonarQube 服务器</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">系统配置</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;SonarQube servers&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add SonarQube&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="n">sonarqube</span><span class="o">-</span><span class="n">server</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Server</span><span class="w"> </span><span class="n">URL</span><span class="p">:</span><span class="w"> </span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">10.0.0.203</span><span class="p">:</span><span class="mf">9000</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Server</span><span class="w"> </span><span class="n">authentication</span><span class="w"> </span><span class="kr">to</span><span class="n">ken</span><span class="p">:</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="s">&quot;Jenkins&quot;</span>
+<span class="w">     </span><span class="n">粘贴刚才生成的</span><span class="w"> </span><span class="kr">To</span><span class="n">ken</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：配置 Sonar 工具</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">全局工具配置</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;SonarQube Scanner&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;Install automatically&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">选择版本</span><span class="err">（</span><span class="n">或自动安装</span><span class="err">）</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<h3 id="104-sonar"><a class="toclink" href="#104-sonar">10.4 项目配置 Sonar 扫描</a></h3>
+<p><strong>步骤 1</strong>：进入项目配置</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">h5game</span><span class="o">-</span><span class="n">deploy</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;配置&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：添加构建环境</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;构建环境&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;Prepare SonarQube Scanner environment&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：添加构建步骤</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;构建&quot;</span><span class="w"> </span><span class="n">部分</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;添加构建步骤&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;SonarQube Scanner&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Key</span><span class="p">:</span><span class="w"> </span><span class="n">h5game</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="err">${</span><span class="n">JOB_NAME</span><span class="err">}</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Version</span><span class="p">:</span><span class="w"> </span><span class="err">${</span><span class="n">git_version</span><span class="err">}</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Source</span><span class="w"> </span><span class="n">Encoding</span><span class="p">:</span><span class="w"> </span><span class="n">UTF</span><span class="o">-</span><span class="mf">8</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Additional</span><span class="w"> </span><span class="n">properties</span><span class="p">:</span>
+<span class="w">     </span><span class="n">sonar</span><span class="mf">.</span><span class="n">sources</span><span class="o">=</span><span class="mf">.</span>
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：调整构建顺序</p>
+<div class="codehilite"><pre><span></span><code>重要！构建顺序应该是：
+1. SonarQube Scanner（先扫描）
+2. Execute shell（后部署）
+
+拖动调整顺序，然后点击 &quot;保存&quot;
+</code></pre></div>
+
+<h3 id="105"><a class="toclink" href="#105">10.5 测试完整流程</a></h3>
+<p><strong>步骤 1</strong>：修改代码</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/var/lib/jenkins/workspace/h5game/
+vim<span class="w"> </span>index.html
+<span class="c1"># 添加一些代码</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;v5.0 稳定版&quot;</span>
+git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v5.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;v5.0 稳定版&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>v5.0
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：触发构建</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">Jenkins</span><span class="w"> </span><span class="n">自动触发</span><span class="err">（</span><span class="n">Webhook</span><span class="err">）</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">或手动</span><span class="w"> </span><span class="s">&quot;Build with Parameters&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：查看结果</p>
+<div class="codehilite"><pre><span></span><code>Jenkins 控制台：
+- 查看 SonarQube 扫描结果
+- 查看部署日志
+
+SonarQube Web：
+- 查看代码质量报告
+- 查看 Bug、漏洞、代码异味
+</code></pre></div>
+
+<hr />
+<h2 id="_2"><a class="toclink" href="#_2">🎯 实战练习</a></h2>
+<h3 id="1-sonarqube"><a class="toclink" href="#1-sonarqube">练习 1：安装 SonarQube</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 目标：完成 SonarQube 安装和配置</span>
+
+步骤：
+<span class="m">1</span>.<span class="w"> </span>安装<span class="w"> </span>MySQL<span class="w"> </span>数据库
+<span class="m">2</span>.<span class="w"> </span>创建<span class="w"> </span>sonar<span class="w"> </span>数据库
+<span class="m">3</span>.<span class="w"> </span>安装<span class="w"> </span>SonarQube
+<span class="m">4</span>.<span class="w"> </span>配置数据库连接
+<span class="m">5</span>.<span class="w"> </span>启动并验证服务
+</code></pre></div>
+
+<h3 id="2"><a class="toclink" href="#2">练习 2：代码质量扫描</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 目标：掌握 SonarQube 基本使用</span>
+
+步骤：
+<span class="m">1</span>.<span class="w"> </span>安装<span class="w"> </span>Sonar<span class="w"> </span>客户端
+<span class="m">2</span>.<span class="w"> </span>配置项目信息
+<span class="m">3</span>.<span class="w"> </span>执行代码扫描
+<span class="m">4</span>.<span class="w"> </span>查看扫描结果
+</code></pre></div>
+
+<h3 id="3jenkins"><a class="toclink" href="#3jenkins">练习 3：Jenkins 集成</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 目标：实现自动化代码质量检查</span>
+
+步骤：
+<span class="m">1</span>.<span class="w"> </span>安装<span class="w"> </span>SonarQube<span class="w"> </span>插件
+<span class="m">2</span>.<span class="w"> </span>配置<span class="w"> </span>Sonar<span class="w"> </span>服务器
+<span class="m">3</span>.<span class="w"> </span>配置项目扫描
+<span class="m">4</span>.<span class="w"> </span>测试完整流程
+</code></pre></div>
+
+<hr />
+<h2 id="_3"><a class="toclink" href="#_3">📊 代码质量指标说明</a></h2>
+<h3 id="bugbug"><a class="toclink" href="#bugbug">Bug（Bug）</a></h3>
+<div class="codehilite"><pre><span></span><code>严重程度：
+- Blocker（阻塞）：必须立即修复
+- Critical（严重）：需要尽快修复
+- Major（主要）：应该修复
+- Minor（次要）：可以稍后修复
+- Info（提示）：可选修复
+</code></pre></div>
+
+<h3 id="vulnerabilities"><a class="toclink" href="#vulnerabilities">Vulnerabilities（漏洞）</a></h3>
+<div class="codehilite"><pre><span></span><code>安全漏洞分类：
+- SQL 注入
+- XSS 跨站脚本
+- 缓冲区溢出
+- 敏感信息泄露
+- 认证和授权问题
+</code></pre></div>
+
+<h3 id="code-smells"><a class="toclink" href="#code-smells">Code Smells（代码异味）</a></h3>
+<div class="codehilite"><pre><span></span><code>常见问题：
+- 重复代码
+- 过长的方法
+- 复杂的条件判断
+- 未使用的变量
+- 不规范的命名
+</code></pre></div>
+
+<h3 id="coverage"><a class="toclink" href="#coverage">Coverage（覆盖率）</a></h3>
+<div class="codehilite"><pre><span></span><code>测试覆盖率：
+- 行覆盖率：被测试覆盖的代码行比例
+- 分支覆盖率：被测试覆盖的分支比例
+- 条件覆盖率：被测试覆盖的条件组合比例
+
+建议目标：
+- 新项目：≥ 80%
+- 老项目：≥ 60%
+</code></pre></div>
+
+<hr />
+<h2 id="_4"><a class="toclink" href="#_4">🔧 常见问题排查</a></h2>
+<h3 id="1sonarqube"><a class="toclink" href="#1sonarqube">问题 1：SonarQube 无法启动</a></h3>
+<p><strong>症状</strong>：</p>
+<div class="codehilite"><pre><span></span><code>systemctl<span class="w"> </span>status<span class="w"> </span>sonar.service
+<span class="c1"># Active: failed</span>
+</code></pre></div>
+
+<p><strong>排查步骤</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 1. 查看日志</span>
+tail<span class="w"> </span>-f<span class="w"> </span>/opt/sonarqube/logs/sonar.log
+tail<span class="w"> </span>-f<span class="w"> </span>/opt/sonarqube/logs/es.log
+
+<span class="c1"># 2. 检查数据库连接</span>
+mysql<span class="w"> </span>-uroot<span class="w"> </span>-p123456<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;show databases;&#39;</span>
+
+<span class="c1"># 3. 检查端口占用</span>
+netstat<span class="w"> </span>-lntup<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">9000</span>
+
+<span class="c1"># 4. 检查用户权限</span>
+ls<span class="w"> </span>-la<span class="w"> </span>/opt/sonarqube/
+</code></pre></div>
+
+<h3 id="2_1"><a class="toclink" href="#2_1">问题 2：扫描失败</a></h3>
+<p><strong>症状</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ERROR</span><span class="o">:</span><span class="w"> </span><span class="n">Error</span><span class="w"> </span><span class="n">during</span><span class="w"> </span><span class="n">SonarQube</span><span class="w"> </span><span class="n">Scanner</span><span class="w"> </span><span class="n">execution</span>
+</code></pre></div>
+
+<p><strong>排查步骤</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 1. 检查 Token 是否有效</span>
+<span class="c1"># 2. 检查网络连接</span>
+curl<span class="w"> </span>http://10.0.0.203:9000
+
+<span class="c1"># 3. 检查项目配置</span>
+cat<span class="w"> </span>sonar-project.properties
+
+<span class="c1"># 4. 查看详细日志</span>
+sonar-scanner<span class="w"> </span>-X
+</code></pre></div>
+
+<h3 id="3jenkins_1"><a class="toclink" href="#3jenkins_1">问题 3：Jenkins 集成失败</a></h3>
+<p><strong>症状</strong>：</p>
+<div class="codehilite"><pre><span></span><code>SonarQube server is not reachable
+</code></pre></div>
+
+<p><strong>排查步骤</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 1. 检查插件是否安装</span>
+<span class="c1"># 2. 检查服务器配置</span>
+<span class="c1"># 3. 检查 Token 权限</span>
+<span class="c1"># 4. 检查网络连通性</span>
+</code></pre></div>
+
+<hr />
+<h2 id="_5"><a class="toclink" href="#_5">📚 相关文档</a></h2>
+<ul>
+<li><strong>Git 基础回顾</strong> - <a href="./01-Git 基础回顾.md">01-Git 基础回顾.md</a></li>
+<li><strong>GitLab 企业级代码管理</strong> - <a href="./02-GitLab 企业级代码管理.md">02-GitLab 企业级代码管理.md</a></li>
+<li><strong>Jenkins 持续集成</strong> - <a href="./03-Jenkins 持续集成.md">03-Jenkins 持续集成.md</a></li>
+</ul>
+<hr />
+<h2 id="cicd"><a class="toclink" href="#cicd">🌟 完整 CI/CD 流水线</a></h2>
+<div class="codehilite"><pre><span></span><code>┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   开发人员   │ →   │   GitLab    │ →   │   Jenkins   │
+│  提交代码    │     │  代码仓库   │     │  构建服务器  │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                              ↓
+                                    ┌─────────────┐
+                                    │  SonarQube  │
+                                    │  代码扫描   │
+                                    └─────────────┘
+                                              ↓
+                        ┌─────────────────────┼─────────────────────┐
+                        ↓                     ↓                     ↓
+                ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+                │  测试环境   │  →    │ 预发布环境  │  →    │  生产环境   │
+                │  自动测试   │       │  质量检查   │       │  自动部署   │
+                └─────────────┘       └─────────────┘       └─────────────┘
+</code></pre></div>
+
+<p><strong>完整流程</strong>：<br />
+1. 开发人员提交代码到 GitLab<br />
+2. GitLab Webhook 触发 Jenkins 构建<br />
+3. Jenkins 拉取代码并执行 SonarQube 扫描<br />
+4. 代码质量检查通过<br />
+5. 自动部署到测试环境<br />
+6. 自动化测试通过<br />
+7. 部署到预发布环境<br />
+8. 质量检查（性能、安全）<br />
+9. 部署到生产环境</p>
+<hr />
+<p><strong>文档版本</strong>: v1.0<br />
+<strong>提取自</strong>: Git 完全指南-CICD 实战版.md<br />
+<strong>更新时间</strong>: 2026-03-21<br />
+<strong>仓库地址</strong>: https://github.com/hjs2015/git-tutorial</p>
+        </article>
+    </div>
+    
+    <div class="footer">
+        <p>
+            <a href="https://github.com/hjs2015/git-tutorial" target="_blank">GitHub 仓库</a> | 
+            采用 CC BY-SA 4.0 许可证
+        </p>
+        <p>最后更新：2026-03-21</p>
+    </div>
+</body>
+</html>

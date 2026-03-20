@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git 完全指南-CICD 实战版 - Git 完全教程</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292e;
+            background: #f6f8fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .nav-back:hover {
+            background: #5568d3;
+        }
+        .markdown-body {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .markdown-body img {
+            max-width: 100%;
+        }
+        .markdown-body pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .markdown-body code {
+            background: #f6f8fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+        }
+        .markdown-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        .markdown-body table th,
+        .markdown-body table td {
+            border: 1px solid #dfe2e5;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .markdown-body table th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        .markdown-body table tr:nth-child(even) {
+            background: #f6f8fa;
+        }
+        .markdown-body blockquote {
+            border-left: 4px solid #dfe2e5;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #6a737d;
+        }
+        .markdown-body a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+        .toc {
+            background: #f6f8fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+        .toc > ul {
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #586069;
+            margin-top: 40px;
+        }
+        .footer a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        @media (max-width: 768px) {
+            .markdown-body {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📘 Git 完全指南-CICD 实战版</h1>
+        <p>Git 完全教程 v5.0 - 从零基础到企业级实战</p>
+    </div>
+    
+    <div class="container">
+        <a href="index.html" class="nav-back">← 返回首页</a>
+        
+        <article class="markdown-body">
+            <h1 id="git-cicd"><a class="toclink" href="#git-cicd">Git 完全指南 - CI/CD 实战版</a></h1>
+<blockquote>
+<p>📘 <strong>从 Git 基础到企业级 CI/CD 流水线的完整教程</strong><br />
+📌 建议先学习 <a href="./Git 完全指南.md">Git 完全指南.md</a> 掌握基础知识</p>
+</blockquote>
+<hr />
+<h2 id="_1"><a class="toclink" href="#_1">📖 目录</a></h2>
+<h3 id="git"><a class="toclink" href="#git">第一部分：Git 基础（简要回顾）</a></h3>
+<ol>
+<li><a href="#第 1 章-软件开发生命周期">软件开发生命周期</a></li>
+<li><a href="#第 2 章-环境对比与部署痛点">环境对比与部署痛点</a></li>
+</ol>
+<h3 id="gitlab"><a class="toclink" href="#gitlab">第二部分：GitLab 企业级代码管理</a></h3>
+<ol>
+<li><a href="#第 3 章-gitlab 安装部署">GitLab 安装部署</a></li>
+<li><a href="#第 4 章-gitlab 权限管理">GitLab 权限管理</a></li>
+<li><a href="#第 5 章-gitlab 备份与恢复">GitLab 备份与恢复</a></li>
+</ol>
+<h3 id="jenkins"><a class="toclink" href="#jenkins">第三部分：Jenkins 持续集成</a></h3>
+<ol>
+<li><a href="#第 6 章-jenkins 安装配置">Jenkins 安装配置</a></li>
+<li><a href="#第 7 章-jenkins 与-gitlab 集成">Jenkins 与 GitLab 集成</a></li>
+<li><a href="#第 8 章-jenkins 参数化构建">Jenkins 参数化构建</a></li>
+</ol>
+<h3 id="sonarqube"><a class="toclink" href="#sonarqube">第四部分：SonarQube 代码质量</a></h3>
+<ol>
+<li><a href="#第 9 章-sonarqube 部署">SonarQube 部署</a></li>
+<li><a href="#第 10 章-sonarqube 与-jenkins 集成">SonarQube 与 Jenkins 集成</a></li>
+</ol>
+<hr />
+<h2 id="git_1"><a class="toclink" href="#git_1">第一部分：Git 基础（简要回顾）</a></h2>
+<blockquote>
+<p>📌 <strong>说明</strong>：这部分内容已在 <a href="./Git 完全指南.md">Git 完全指南.md</a> 中详细讲解，本节只做简要回顾，重点讲解 CI/CD 相关内容。</p>
+</blockquote>
+<hr />
+<h3 id="1"><a class="toclink" href="#1">第 1 章 软件开发生命周期</a></h3>
+<h4 id="11"><a class="toclink" href="#11">1.1 完整开发流程</a></h4>
+<div class="codehilite"><pre><span></span><code>项目立项 → 需求调研 → 需求拆解 → 开发实现 → 测试环境测试 → 部署生产环境
+</code></pre></div>
+
+<p><strong>形象比喻</strong>：</p>
+<div class="codehilite"><pre><span></span><code>想象你要开一家餐厅：
+
+项目立项    = 决定开什么类型的餐厅
+需求调研    = 调查顾客喜欢吃什么
+需求拆解    = 设计菜单和厨房流程
+开发实现    = 厨师做菜
+测试环境    = 试菜环节（内部品尝）
+生产环境    = 正式营业（面向顾客）
+</code></pre></div>
+
+<h4 id="12"><a class="toclink" href="#12">1.2 四种环境详解</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">环境</th>
+<th style="text-align: left;">说明</th>
+<th style="text-align: left;">用途</th>
+<th style="text-align: left;">数据</th>
+<th style="text-align: left;">访问权限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>开发环境</strong></td>
+<td style="text-align: left;">开发人员本地电脑</td>
+<td style="text-align: left;">代码编写、调试</td>
+<td style="text-align: left;">本地 Mock 数据</td>
+<td style="text-align: left;">开发人员</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>测试环境</strong></td>
+<td style="text-align: left;">内网服务器</td>
+<td style="text-align: left;">功能测试、集成测试</td>
+<td style="text-align: left;">测试数据</td>
+<td style="text-align: left;">测试人员</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>预发布环境</strong></td>
+<td style="text-align: left;">独立服务器</td>
+<td style="text-align: left;">质量检测、性能测试</td>
+<td style="text-align: left;">生产数据副本</td>
+<td style="text-align: left;">测试 + 运维</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>生产环境</strong></td>
+<td style="text-align: left;">云服务器/IDC</td>
+<td style="text-align: left;">面向用户</td>
+<td style="text-align: left;">真实数据</td>
+<td style="text-align: left;">仅运维</td>
+</tr>
+</tbody>
+</table>
+<p><strong>环境对比图</strong>：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  开发环境   │ →   │  测试环境   │ →   │ 预发布环境  │ →   │  生产环境   │
+│  localhost  │     │  test.local │     │ staging.com │     │  www.com    │
+│  Mock 数据   │     │  测试数据   │     │ 生产副本     │     │  真实数据   │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+     ↓                    ↓                    ↓                    ↓
+  开发人员              测试人员            测试 + 运维            所有用户
+</code></pre></div>
+
+<hr />
+<h3 id="2"><a class="toclink" href="#2">第 2 章 环境对比与部署痛点</a></h3>
+<h4 id="21-5"><a class="toclink" href="#21-5">2.1 手动部署的 5 大问题</a></h4>
+<blockquote>
+<p><strong>痛点分析</strong>：为什么我们需要自动化部署？</p>
+</blockquote>
+<p><strong>问题 1：上传方式不方便</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 传统部署需要使用多种工具</span>
+scp<span class="w"> </span>code.tar.gz<span class="w"> </span>user@server:/path
+rsync<span class="w"> </span>-avz<span class="w"> </span>./code/<span class="w"> </span>user@server:/path
+rz<span class="w">  </span><span class="c1"># 本地上传</span>
+ftp<span class="w">  </span><span class="c1"># FTP 客户端</span>
+</code></pre></div>
+
+<p><strong>问题 2：效率低下，占用大量时间</strong></p>
+<div class="codehilite"><pre><span></span><code>假设部署流程：
+1. 打包代码 ............ 2 分钟
+2. 上传服务器 .......... 5 分钟
+3. 停止服务 ............ 1 分钟
+4. 备份旧版本 .......... 3 分钟
+5. 部署新版本 .......... 2 分钟
+6. 启动服务 ............ 2 分钟
+7. 验证功能 ............ 5 分钟
+───────────────────────────────
+总计：20 分钟/次
+
+如果每天部署 3 次：
+20 分钟 × 3 次 = 60 分钟/天
+60 分钟 × 22 工作日 = 22 小时/月
+22 小时 × 12 月 = 264 小时/年 ≈ 33 个工作日！
+</code></pre></div>
+
+<p><strong>问题 3：服务器多，上线速度慢</strong></p>
+<div class="codehilite"><pre><span></span><code>场景：需要在 10 台服务器上部署
+
+手动部署：
+20 分钟/台 × 10 台 = 200 分钟 = 3.3 小时
+
+而且需要逐个操作，容易出错！
+</code></pre></div>
+
+<p><strong>问题 4：容易误操作，不能保证准确率</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 人为错误示例</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>/var/www/html<span class="w">  </span><span class="c1"># 删错目录！</span>
+service<span class="w"> </span>nginx<span class="w"> </span>stop<span class="w">    </span><span class="c1"># 忘记录入启动命令！</span>
+</code></pre></div>
+
+<p><strong>问题 5：出问题不好回滚，手忙脚乱</strong></p>
+<div class="codehilite"><pre><span></span><code>生产环境出问题时：
+❌ 找不到之前的版本
+❌ 备份不完整
+❌ 回滚步骤复杂
+❌ 团队手忙脚乱
+</code></pre></div>
+
+<h4 id="22-3"><a class="toclink" href="#22-3">2.2 自动部署的 3 大优势</a></h4>
+<p><strong>持续集成 (CI - Continuous Integration)</strong></p>
+<div class="codehilite"><pre><span></span><code>概念：
+开发的代码持续集成到代码仓库，不用等所有人都开发完毕再合并。
+
+工作流程：
+1. 开发提交代码到仓库
+   ↓
+2. CI 服务器自动拉取代码
+   ↓
+3. 自动编译、测试
+   ↓
+4. 返回结果给开发人员
+
+优势：
+✅ 频繁合并功能，减少冲突
+✅ 及时发现问题，降低修复成本
+✅ 提高团队协作效率
+</code></pre></div>
+
+<p><strong>持续交付 (CD - Continuous Delivery)</strong></p>
+<div class="codehilite"><pre><span></span><code>概念：
+将编译好的代码持续交付到测试环境进行测试。
+
+工作流程：
+1. 代码编译完成
+   ↓
+2. 自动部署到测试环境
+   ↓
+3. 自动运行测试用例
+   ↓
+4. 生成测试报告
+
+预发布环境的作用：
+✅ 质量扫描（代码规范检查）
+✅ 漏洞扫描（安全检测）
+✅ 性能测试（压力测试）
+✅ 更接近生产环境
+</code></pre></div>
+
+<p><strong>持续部署</strong></p>
+<div class="codehilite"><pre><span></span><code>概念：
+代码测试通过后，自动部署到生产环境。
+
+工作流程：
+1. 测试通过
+   ↓
+2. 自动部署到生产服务器
+   ↓
+3. 健康检查
+   ↓
+4. 发现问题自动回滚
+
+优势：
+✅ 快速上线新功能
+✅ 减少人为错误
+✅ 快速回滚到正常版本
+</code></pre></div>
+
+<h4 id="23-cicd"><a class="toclink" href="#23-cicd">2.3 CI/CD 流水线架构图</a></h4>
+<div class="codehilite"><pre><span></span><code>┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   开发人员   │ →   │   GitLab    │ →   │   Jenkins   │
+│  提交代码    │     │  代码仓库   │     │  构建服务器  │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                              ↓
+                                    ┌─────────────┐
+                                    │  SonarQube  │
+                                    │  代码扫描   │
+                                    └─────────────┘
+                                              ↓
+                        ┌─────────────────────┼─────────────────────┐
+                        ↓                     ↓                     ↓
+                ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+                │  测试环境   │  →    │ 预发布环境  │  →    │  生产环境   │
+                │  自动测试   │       │  质量检查   │       │  自动部署   │
+                └─────────────┘       └─────────────┘       └─────────────┘
+</code></pre></div>
+
+<hr />
+<h2 id="gitlab_1"><a class="toclink" href="#gitlab_1">第二部分：GitLab 企业级代码管理</a></h2>
+<h3 id="3-gitlab"><a class="toclink" href="#3-gitlab">第 3 章 GitLab 安装部署</a></h3>
+<h4 id="31"><a class="toclink" href="#31">3.1 环境准备</a></h4>
+<p><strong>服务器清单</strong>：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">主机名</th>
+<th style="text-align: left;">IP 地址</th>
+<th style="text-align: left;">服务</th>
+<th style="text-align: center;">内存</th>
+<th style="text-align: left;">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">gitlab</td>
+<td style="text-align: left;">10.0.0.200</td>
+<td style="text-align: left;">GitLab</td>
+<td style="text-align: center;">2G</td>
+<td style="text-align: left;">代码仓库</td>
+</tr>
+<tr>
+<td style="text-align: left;">jenkins</td>
+<td style="text-align: left;">10.0.0.201</td>
+<td style="text-align: left;">Jenkins</td>
+<td style="text-align: center;">1G</td>
+<td style="text-align: left;">持续集成</td>
+</tr>
+<tr>
+<td style="text-align: left;">nexus</td>
+<td style="text-align: left;">10.0.0.202</td>
+<td style="text-align: left;">Nexus</td>
+<td style="text-align: center;">2G</td>
+<td style="text-align: left;">制品库</td>
+</tr>
+<tr>
+<td style="text-align: left;">sonar</td>
+<td style="text-align: left;">10.0.0.203</td>
+<td style="text-align: left;">SonarQube</td>
+<td style="text-align: center;">2G</td>
+<td style="text-align: left;">代码质量</td>
+</tr>
+<tr>
+<td style="text-align: left;">web</td>
+<td style="text-align: left;">10.0.0.7</td>
+<td style="text-align: left;">Nginx</td>
+<td style="text-align: center;">1G</td>
+<td style="text-align: left;">Web 服务器</td>
+</tr>
+</tbody>
+</table>
+<p><strong>网络拓扑图</strong>：</p>
+<div class="codehilite"><pre><span></span><code>                    ┌─────────────┐
+                    │   10.0.0.7  │
+                    │  Web Server │
+                    │   (Nginx)   │
+                    └──────┬──────┘
+                           │
+         ┌─────────────────┼─────────────────┐
+         │                 │                 │
+┌────────┴────────┐ ┌──────┴──────┐ ┌───────┴────────┐
+│  10.0.0.200     │ │ 10.0.0.201  │ │  10.0.0.203    │
+│  GitLab Server  │ │  Jenkins    │ │  SonarQube     │
+│  (代码仓库)      │ │  (CI/CD)    │ │  (代码质量)     │
+└─────────────────┘ └─────────────┘ └────────────────┘
+</code></pre></div>
+
+<h4 id="32-gitlab-1-rpm"><a class="toclink" href="#32-gitlab-1-rpm">3.2 安装 GitLab（方法 1：直接下载 RPM 包）</a></h4>
+<blockquote>
+<p><strong>推荐方法</strong>：适合网络环境较好，直接下载指定版本</p>
+</blockquote>
+<p><strong>步骤 1</strong>：下载 RPM 包</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 清华镜像源地址</span>
+https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/
+
+<span class="c1"># 下载指定版本</span>
+wget<span class="w"> </span>https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/gitlab-ce-12.0.3-ce.0.el7.x86_64.rpm
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：安装 GitLab</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 本地安装</span>
+yum<span class="w"> </span>localinstall<span class="w"> </span>gitlab-ce-12.0.3-ce.0.el7.x86_64.rpm<span class="w"> </span>-y
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@gitlab<span class="w"> </span>~<span class="o">]</span><span class="c1"># yum localinstall gitlab-ce-12.0.3-ce.0.el7.x86_64.rpm -y</span>
+已加载插件：fastestmirror
+正在检查<span class="w"> </span>gitlab-ce-12.0.3-ce.0.el7.x86_64.rpm
+依赖关系解决。
+
+<span class="o">================================================================================</span>
+<span class="w"> </span>软件包<span class="w">                 </span>架构<span class="w">    </span>版本<span class="w">                  </span><span class="nv">仓库</span>
+<span class="o">================================================================================</span>
+正在安装:
+<span class="w"> </span>gitlab-ce<span class="w">              </span>x86_64<span class="w">  </span><span class="m">12</span>.0.3-ce.0.el7<span class="w">       </span>@commandline
+
+<span class="nv">事务概要</span>
+<span class="o">================================================================================</span>
+安装<span class="w">  </span><span class="m">1</span><span class="w"> </span>软件包
+
+总计：1.2<span class="w"> </span>GB
+安装完成！
+</code></pre></div>
+
+<h4 id="33-gitlab-2-yum"><a class="toclink" href="#33-gitlab-2-yum">3.3 安装 GitLab（方法 2：配置 YUM 源）</a></h4>
+<blockquote>
+<p><strong>推荐方法</strong>：适合需要批量安装或频繁更新的场景</p>
+</blockquote>
+<p><strong>步骤 1</strong>：配置 YUM 源</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>&gt;<span class="w"> </span>/etc/yum.repos.d/gitlab-ce.repo<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">[gitlab-ce]</span>
+<span class="s">name=Gitlab CE Repository</span>
+<span class="s">baseurl=https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el$releasever/</span>
+<span class="s">gpgcheck=0</span>
+<span class="s">enabled=1</span>
+<span class="s">EOF</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：安装 GitLab</p>
+<div class="codehilite"><pre><span></span><code>yum<span class="w"> </span>-y<span class="w"> </span>install<span class="w"> </span>gitlab-ce
+</code></pre></div>
+
+<h4 id="34-gitlab"><a class="toclink" href="#34-gitlab">3.4 配置 GitLab</a></h4>
+<p><strong>步骤 1</strong>：修改配置文件</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/etc/gitlab/gitlab.rb
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：修改 external_url</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 找到这一行（大约在第 51 行）</span>
+<span class="n">external_url</span><span class="w"> </span><span class="s1">&#39;http://10.0.0.200&#39;</span>
+
+<span class="c1"># 说明：</span>
+<span class="c1"># - 修改为本机 IP 地址</span>
+<span class="c1"># - 使用 http 协议（首次配置）</span>
+<span class="c1"># - 不要使用 localhost 或 127.0.0.1</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：重新加载配置</p>
+<div class="codehilite"><pre><span></span><code>gitlab-ctl<span class="w"> </span>reconfigure
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@gitlab<span class="w"> </span>~<span class="o">]</span><span class="c1"># gitlab-ctl reconfigure</span>
+Starting<span class="w"> </span>Chef<span class="w"> </span>Client,<span class="w"> </span>version<span class="w"> </span><span class="m">14</span>.14.29
+resolving<span class="w"> </span>cookbooks<span class="w"> </span><span class="k">for</span><span class="w"> </span>run<span class="w"> </span>list:<span class="w"> </span><span class="o">[</span><span class="s2">&quot;gitlab&quot;</span><span class="o">]</span>
+Synchronizing<span class="w"> </span>cookbooks:<span class="w"> </span><span class="o">(</span><span class="m">0</span>.000s<span class="o">)</span>
+Compiling<span class="w"> </span>cookbooks<span class="w"> </span>...
+Converging<span class="w"> </span><span class="m">470</span><span class="w"> </span>resources
+
+<span class="c1"># ⏰ 注意：这一步耗时较长（5-10 分钟），请耐心等待！</span>
+<span class="c1"># 期间会安装依赖、创建数据库、配置服务等</span>
+
+Recipe:<span class="w"> </span>gitlab::gitlab-rails
+<span class="w">  </span>*<span class="w"> </span>execute<span class="o">[</span>gitlab-ctl<span class="w"> </span>stop<span class="w"> </span>runsvdir<span class="o">]</span><span class="w"> </span>action<span class="w"> </span>run<span class="w"> </span><span class="o">(</span>skipped<span class="o">)</span>
+<span class="w">  </span>*<span class="w"> </span>link<span class="o">[</span>/opt/gitlab/service/gitlab-rails<span class="o">]</span><span class="w"> </span>action<span class="w"> </span>create<span class="w"> </span><span class="o">(</span>skipped<span class="o">)</span>
+
+<span class="c1"># 最后显示：</span>
+*<span class="w"> </span>execute<span class="o">[</span>gitlab-ctl<span class="w"> </span>reconfigure<span class="o">]</span><span class="w"> </span>action<span class="w"> </span>run
+<span class="w">  </span>-<span class="w"> </span>execute<span class="w"> </span><span class="o">[</span><span class="s2">&quot;./bin/gitlab-ctl&quot;</span>,<span class="w"> </span><span class="s2">&quot;reconfigure&quot;</span><span class="o">]</span>
+
+Chef<span class="w"> </span>Client<span class="w"> </span>finished,<span class="w"> </span><span class="m">150</span>/900<span class="w"> </span>resources<span class="w"> </span>updated<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">05</span><span class="w"> </span>minutes<span class="w"> </span><span class="m">32</span><span class="w"> </span>seconds
+GitLab<span class="w"> </span>Reconfigured!
+</code></pre></div>
+
+<p>⚠️ <strong>注意事项</strong>：<br />
+- 此步骤耗时较长（5-10 分钟），请耐心等待<br />
+- 确保服务器内存充足（至少 2G）<br />
+- 如果配置失败，查看日志：<code>gitlab-ctl tail</code></p>
+<h4 id="35-web"><a class="toclink" href="#35-web">3.5 Web 页面访问</a></h4>
+<p><strong>步骤 1</strong>：浏览器访问</p>
+<div class="codehilite"><pre><span></span><code>http://10.0.0.200
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：首次登录设置密码</p>
+<div class="codehilite"><pre><span></span><code><span class="n">初次登陆</span><span class="w"> </span><span class="n">GitLab</span><span class="w"> </span><span class="n">需要设置密码</span><span class="err">：</span>
+<span class="o">-</span><span class="w"> </span><span class="n">密码长度不低于</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="n">位</span>
+<span class="o">-</span><span class="w"> </span><span class="n">建议使用强密码</span><span class="err">（</span><span class="n">大小写</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">数字</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">特殊字符</span><span class="err">）</span>
+<span class="o">-</span><span class="w"> </span><span class="n">示例</span><span class="err">：</span><span class="n">GitLab</span><span class="mi">@2026</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：登录系统</p>
+<div class="codehilite"><pre><span></span><code>用户名：root
+密码：刚才设置的密码
+</code></pre></div>
+
+<p><strong>登录后的界面</strong>：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────┐
+│  GitLab                        [用户] [设置] │
+├─────────────────────────────────────────────┤
+│  Dashboard                                  │
+│  Projects                                   │
+│  Groups                                     │
+│  ...                                        │
+│                                             │
+│  Welcome to GitLab Community Edition!       │
+│                                             │
+│  [创建项目] [导入项目]                       │
+└─────────────────────────────────────────────┘
+</code></pre></div>
+
+<h4 id="36-gitlab"><a class="toclink" href="#36-gitlab">3.6 GitLab 常用命令</a></h4>
+<p><strong>查看服务状态</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 查看所有服务状态</span>
+gitlab-ctl<span class="w"> </span>status
+
+<span class="c1"># 输出示例：</span>
+run:<span class="w"> </span>alertmanager:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1234</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>gitaly:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1235</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>gitlab-monitor:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1236</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>gitlab-workhorse:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1237</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>logrotate:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1238</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>nginx:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1239</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>node-exporter:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1240</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>postgresql:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1241</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>prometheus:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1242</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>redis:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1243</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>sidekiq:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1244</span><span class="o">)</span><span class="w"> </span>10s
+run:<span class="w"> </span>unicorn:<span class="w"> </span><span class="o">(</span>pid<span class="w"> </span><span class="m">1245</span><span class="o">)</span><span class="w"> </span>10s
+</code></pre></div>
+
+<p><strong>启动/停止服务</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 启动所有服务</span>
+gitlab-ctl<span class="w"> </span>start
+
+<span class="c1"># 停止所有服务</span>
+gitlab-ctl<span class="w"> </span>stop
+
+<span class="c1"># 重启所有服务</span>
+gitlab-ctl<span class="w"> </span>restart
+</code></pre></div>
+
+<p><strong>管理单个服务</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 停止 Nginx</span>
+gitlab-ctl<span class="w"> </span>stop<span class="w"> </span>nginx
+
+<span class="c1"># 启动 Nginx</span>
+gitlab-ctl<span class="w"> </span>start<span class="w"> </span>nginx
+
+<span class="c1"># 重启 PostgreSQL</span>
+gitlab-ctl<span class="w"> </span>restart<span class="w"> </span>postgresql
+</code></pre></div>
+
+<p><strong>查看服务日志</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 查看所有服务日志</span>
+gitlab-ctl<span class="w"> </span>tail
+
+<span class="c1"># 查看特定服务日志</span>
+gitlab-ctl<span class="w"> </span>tail<span class="w"> </span>nginx
+gitlab-ctl<span class="w"> </span>tail<span class="w"> </span>unicorn
+gitlab-ctl<span class="w"> </span>tail<span class="w"> </span>sidekiq
+</code></pre></div>
+
+<hr />
+<h3 id="4-gitlab"><a class="toclink" href="#4-gitlab">第 4 章 GitLab 权限管理</a></h3>
+<h4 id="41-"><a class="toclink" href="#41-">4.1 用户 - 项目组 - 项目关系</a></h4>
+<blockquote>
+<p><strong>核心概念</strong>：理解三者的关系是权限管理的基础</p>
+</blockquote>
+<p><strong>关系说明</strong>：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────┐
+│   用户组    │  ← 用户的集合（如：dev、ops）
+│  (Group)    │
+└──────┬──────┘
+       │ 包含
+       ↓
+┌─────────────┐
+│   项目      │  ← 代码仓库（如：game、ansible）
+│  (Project)  │
+└──────┬──────┘
+       │ 属于
+       ↓
+┌─────────────┐
+│   用户      │  ← 具体的人（如：zhangsan、lisi）
+│  (User)     │
+└─────────────┘
+</code></pre></div>
+
+<p><strong>权限级别</strong>：<br />
+| 级别 | 名称 | 权限说明 |<br />
+|:---:|:---|:---|<br />
+| 👻 | Guest | 创建 Issue、发表评论 |<br />
+| 👤 | Reporter | 查看代码、下载项目 |<br />
+| 👨‍💻 | Developer | 推送代码、创建分支 |<br />
+| 🔧 | Maintainer | 管理项目、合并请求 |<br />
+| 👑 | Owner | 删除项目、管理成员 |</p>
+<h4 id="42"><a class="toclink" href="#42">4.2 权限实验需求</a></h4>
+<p><strong>场景</strong>：某公司有开发部和运维部，需要配置不同的访问权限</p>
+<p><strong>创建 2 个组</strong>：</p>
+<div class="codehilite"><pre><span></span><code>dev   - 开发组（负责软件开发）
+ops   - 运维组（负责服务器运维）
+</code></pre></div>
+
+<p><strong>创建 2 个项目</strong>：</p>
+<div class="codehilite"><pre><span></span><code>game     - 游戏项目（属于 dev 组）
+ansible  - 运维脚本（属于 ops 组）
+</code></pre></div>
+
+<p><strong>创建 3 个用户</strong>：</p>
+<div class="codehilite"><pre><span></span><code>cto        - CTO（技术总监），对所有项目有管理权限
+oldya_dev  - 开发人员，对 dev 组有所有权限
+oldya_ops  - 运维人员，对 ops 组有所有权限，对 dev 组只有查看权限
+</code></pre></div>
+
+<p><strong>权限分配表</strong>：<br />
+| 用户 | dev 组 | ops 组 | game 项目 | ansible 项目 |<br />
+|:---|:---:|:---:|:---:|:---:|<br />
+| <strong>cto</strong> | Owner | Owner | Maintainer | Maintainer |<br />
+| <strong>oldya_dev</strong> | Developer | - | Developer | 无权限 |<br />
+| <strong>oldya_ops</strong> | Reporter | Developer | Reporter | Developer |</p>
+<h4 id="43"><a class="toclink" href="#43">4.3 创建组和项目</a></h4>
+<p><strong>步骤 1</strong>：创建 dev 组</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">登录</span><span class="w"> </span><span class="n">GitLab</span><span class="w"> </span><span class="n">Web</span><span class="w"> </span><span class="n">界面</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击左上角菜单</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Groups</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;New group&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写信息</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Group</span><span class="w"> </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">dev</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Group</span><span class="w"> </span><span class="n">slug</span><span class="p">:</span><span class="w"> </span><span class="n">dev</span><span class="err">（</span><span class="n">自动生成</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Visibility</span><span class="p">:</span><span class="w"> </span><span class="n">Private</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Create group&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：创建 ops 组</p>
+<div class="codehilite"><pre><span></span><code>重复上述步骤，创建 ops 组
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：在 dev 组下创建 game 项目</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">dev</span><span class="w"> </span><span class="n">组页面</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;New project&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;Create blank project&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写信息</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">game</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Visibility</span><span class="p">:</span><span class="w"> </span><span class="n">Private</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Create project&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：在 ops 组下创建 ansible 项目</p>
+<div class="codehilite"><pre><span></span><code>重复上述步骤，在 ops 组下创建 ansible 项目
+</code></pre></div>
+
+<h4 id="44"><a class="toclink" href="#44">4.4 创建用户</a></h4>
+<p><strong>步骤 1</strong>：创建 cto 用户</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="n">Admin</span><span class="w"> </span><span class="n">Area</span><span class="err">（</span><span class="n">管理员区域</span><span class="err">）</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="n">Users</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">New</span><span class="w"> </span><span class="n">user</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">填写信息</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="o">:</span><span class="w"> </span><span class="n">CTO</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Username</span><span class="o">:</span><span class="w"> </span><span class="n">cto</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Email</span><span class="o">:</span><span class="w"> </span><span class="n">cto</span><span class="p">@</span><span class="n">example</span><span class="p">.</span><span class="n">com</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Password</span><span class="o">:</span><span class="w"> </span><span class="n">Cto</span><span class="mi">@2026</span><span class="err">（</span><span class="n">强密码</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Password</span><span class="w"> </span><span class="n">confirmation</span><span class="o">:</span><span class="w"> </span><span class="n">Cto</span><span class="mi">@2026</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Skip</span><span class="w"> </span><span class="n">confirmation</span><span class="o">:</span><span class="w"> </span><span class="err">✓</span><span class="w"> </span><span class="n">勾选</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Create user&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：创建 oldya_dev 用户</p>
+<div class="codehilite"><pre><span></span><code><span class="n">重复上述步骤</span><span class="err">：</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="o">:</span><span class="w"> </span><span class="n">Oldya</span><span class="w"> </span><span class="n">Dev</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Username</span><span class="o">:</span><span class="w"> </span><span class="n">oldya_dev</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Email</span><span class="o">:</span><span class="w"> </span><span class="n">dev</span><span class="p">@</span><span class="n">example</span><span class="p">.</span><span class="n">com</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Password</span><span class="o">:</span><span class="w"> </span><span class="n">Dev</span><span class="mi">@2026</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：创建 oldya_ops 用户</p>
+<div class="codehilite"><pre><span></span><code><span class="n">重复上述步骤</span><span class="err">：</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="o">:</span><span class="w"> </span><span class="n">Oldya</span><span class="w"> </span><span class="n">Ops</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Username</span><span class="o">:</span><span class="w"> </span><span class="n">oldya_ops</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Email</span><span class="o">:</span><span class="w"> </span><span class="n">ops</span><span class="p">@</span><span class="n">example</span><span class="p">.</span><span class="n">com</span>
+<span class="o">-</span><span class="w"> </span><span class="n">Password</span><span class="o">:</span><span class="w"> </span><span class="n">Ops</span><span class="mi">@2026</span>
+</code></pre></div>
+
+<h4 id="45"><a class="toclink" href="#45">4.5 授权用户到组</a></h4>
+<p><strong>步骤 1</strong>：dev 组添加用户</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">dev</span><span class="w"> </span><span class="n">组页面</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="n">Members</span><span class="err">（</span><span class="n">成员</span><span class="err">）</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">添加</span><span class="w"> </span><span class="n">cto</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择用户</span><span class="err">：</span><span class="n">cto</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择角色</span><span class="err">：</span><span class="n">Owner</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add to group&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">添加</span><span class="w"> </span><span class="n">oldya_dev</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择用户</span><span class="err">：</span><span class="n">oldya_dev</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择角色</span><span class="err">：</span><span class="n">Developer</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add to group&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">添加</span><span class="w"> </span><span class="n">oldya_ops</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择用户</span><span class="err">：</span><span class="n">oldya_ops</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择角色</span><span class="err">：</span><span class="n">Reporter</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add to group&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：ops 组添加用户</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">ops</span><span class="w"> </span><span class="n">组页面</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="n">Members</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">添加</span><span class="w"> </span><span class="n">cto</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择角色</span><span class="err">：</span><span class="n">Owner</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">添加</span><span class="w"> </span><span class="n">oldya_ops</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">选择角色</span><span class="err">：</span><span class="n">Developer</span>
+</code></pre></div>
+
+<h4 id="46-ssh"><a class="toclink" href="#46-ssh">4.6 SSH 公钥配置</a></h4>
+<blockquote>
+<p><strong>为什么需要 SSH 公钥？</strong></p>
+<p>Git 操作（克隆、推送）需要身份验证。使用 SSH 公钥可以：<br />
+- ✅ 免密码登录<br />
+- ✅ 更安全（相比密码）<br />
+- ✅ 方便脚本自动化</p>
+</blockquote>
+<p><strong>步骤 1</strong>：生成 SSH 密钥对</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 在开发机上执行</span>
+ssh-keygen<span class="w"> </span>-f<span class="w"> </span>/root/.ssh/id_rsa<span class="w"> </span>-N<span class="w"> </span><span class="s1">&#39;&#39;</span>
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~<span class="o">]</span><span class="c1"># ssh-keygen -f /root/.ssh/id_rsa -N &#39;&#39;</span>
+Generating<span class="w"> </span>public/private<span class="w"> </span>rsa<span class="w"> </span>key<span class="w"> </span>pair.
+Created<span class="w"> </span>directory<span class="w"> </span><span class="s1">&#39;/root/.ssh&#39;</span>.
+Your<span class="w"> </span>identification<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>saved<span class="w"> </span><span class="k">in</span><span class="w"> </span>/root/.ssh/id_rsa.
+Your<span class="w"> </span>public<span class="w"> </span>key<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>saved<span class="w"> </span><span class="k">in</span><span class="w"> </span>/root/.ssh/id_rsa.pub.
+The<span class="w"> </span>key<span class="w"> </span>fingerprint<span class="w"> </span>is:
+SHA256:FD6YcWj3q66GnZZX7Qa36YpguJn7g70H3sJQu9Y7OcM<span class="w"> </span>root@web-7
+The<span class="w"> </span>key<span class="err">&#39;</span>s<span class="w"> </span>randomart<span class="w"> </span>image<span class="w"> </span>is:
++---<span class="o">[</span>RSA<span class="w"> </span><span class="m">2048</span><span class="o">]</span>----+
+<span class="p">|</span><span class="w">       </span>..o.<span class="w">      </span><span class="p">|</span>
+<span class="p">|</span><span class="w">      </span>.<span class="w"> </span>+.o<span class="w">      </span><span class="p">|</span>
+<span class="p">|</span><span class="w">     </span>.<span class="w"> </span><span class="o">=</span>.+<span class="w">       </span><span class="p">|</span>
+<span class="p">|</span><span class="w">      </span>+.*.<span class="w">       </span><span class="p">|</span>
+<span class="p">|</span><span class="w">     </span>.<span class="w"> </span><span class="o">=</span>S.<span class="w">       </span><span class="p">|</span>
+<span class="p">|</span><span class="w">      </span>o<span class="w"> </span>+<span class="w">        </span><span class="p">|</span>
+<span class="p">|</span><span class="w">       </span>.<span class="w">         </span><span class="p">|</span>
+<span class="p">|</span><span class="w">                 </span><span class="p">|</span>
+<span class="p">|</span><span class="w">                 </span><span class="p">|</span>
++----<span class="o">[</span>SHA256<span class="o">]</span>-----+
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：查看公钥</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>/root/.ssh/id_rsa.pub
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~<span class="o">]</span><span class="c1"># cat .ssh/id_rsa.pub</span>
+ssh-rsa<span class="w"> </span>AAAAB3NzaC1yc2EAAAADAQABAAABAQDZS9kTGlim0k8zhCSPWp/gsg7ll5ymn91bS7ADuTp4B+5fkt3Tyo+TdgUKD786mkyNH9bJK3W3rwN5SviQJCOKemPVCJCzmewbdubweeZ/ZfXQFZ/iOvB6uiWD1THbfEG8OUxT7OVQiVffwhyXdtGnifcpu/hNWmDWDArFXlR7fvT84QpIOvWC8TKpHM//6EsQgPv4lfM1oLOXNEcoW7DGmQhuWkhiYBzjiYxfRfZo6H5G0WNMwx1piC9MnLbbIBxRp201gtPJZjykSe8le2wJiUU0i6DAObjSo2Nfshwjdc020qaCKFG/1sH9GsUzLBJ3l44Tuj6HdPH/0poejCxP<span class="w"> </span>root@web-7
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：添加公钥到 GitLab</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">登录</span><span class="w"> </span><span class="n">GitLab</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击右上角头像</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Settings</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="n">SSH</span><span class="w"> </span><span class="n">Keys</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">粘贴公钥内容到</span><span class="w"> </span><span class="s">&quot;Key&quot;</span><span class="w"> </span><span class="n">框</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">填写标题</span><span class="err">（</span><span class="n">可选</span><span class="err">）：</span><span class="n">web</span><span class="o">-</span><span class="mf">7</span><span class="o">-</span><span class="n">server</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add key&quot;</span>
+</code></pre></div>
+
+<h4 id="47"><a class="toclink" href="#47">4.7 克隆项目测试</a></h4>
+<p><strong>步骤 1</strong>：克隆 game 项目</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 复制项目 SSH 地址</span>
+<span class="c1"># git@10.0.0.200:dev/game.git</span>
+
+<span class="c1"># 执行克隆</span>
+git<span class="w"> </span>clone<span class="w"> </span>git@10.0.0.200:dev/game.git
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~<span class="o">]</span><span class="c1"># git clone git@10.0.0.200:dev/game.git</span>
+正克隆到<span class="w"> </span><span class="s1">&#39;game&#39;</span>...
+The<span class="w"> </span>authenticity<span class="w"> </span>of<span class="w"> </span>host<span class="w"> </span><span class="s1">&#39;10.0.0.200 (10.0.0.200)&#39;</span><span class="w"> </span>can<span class="s1">&#39;t be established.</span>
+<span class="s1">ECDSA key fingerprint is SHA256:FD6YcWj3q66GnZZX7Qa36YpguJn7g70H3sJQu9Y7OcM.</span>
+<span class="s1">Are you sure you want to continue connecting (yes/no)? yes</span>
+<span class="s1">Warning: Permanently added &#39;</span><span class="m">10</span>.0.0.200<span class="err">&#39;</span><span class="w"> </span><span class="o">(</span>ECDSA<span class="o">)</span><span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>list<span class="w"> </span>of<span class="w"> </span>known<span class="w"> </span>hosts.
+remote:<span class="w"> </span>Enumerating<span class="w"> </span>objects:<span class="w"> </span><span class="m">3</span>,<span class="w"> </span><span class="k">done</span>.
+remote:<span class="w"> </span>Counting<span class="w"> </span>objects:<span class="w"> </span><span class="m">100</span>%<span class="w"> </span><span class="o">(</span><span class="m">3</span>/3<span class="o">)</span>,<span class="w"> </span><span class="k">done</span>.
+remote:<span class="w"> </span>Total<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="o">(</span>delta<span class="w"> </span><span class="m">0</span><span class="o">)</span>,<span class="w"> </span>reused<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">(</span>delta<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+接收对象中：100%<span class="w"> </span><span class="o">(</span><span class="m">3</span>/3<span class="o">)</span>,<span class="w"> </span><span class="k">done</span>.
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：查看克隆结果</p>
+<div class="codehilite"><pre><span></span><code>ls<span class="w"> </span>-la<span class="w"> </span>game/
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~<span class="o">]</span><span class="c1"># ll game/</span>
+总用量<span class="w"> </span><span class="m">4</span>
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">5</span><span class="w"> </span><span class="m">20</span>:54<span class="w"> </span>README.md
+</code></pre></div>
+
+<h4 id="48"><a class="toclink" href="#48">4.8 创建分支并提交</a></h4>
+<p><strong>步骤 1</strong>：创建新分支</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>game/
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>game_v1
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~/game<span class="o">]</span><span class="c1"># git checkout -b game_v1</span>
+切换到一个新分支<span class="w"> </span><span class="s1">&#39;game_v1&#39;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：创建文件并提交</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 创建首页文件</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;v1&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>index.html
+
+<span class="c1"># 添加到暂存区</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+
+<span class="c1"># 提交到本地仓库</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;create index&quot;</span>
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~/game<span class="o">]</span><span class="c1"># echo &quot;v1&quot; &gt; index.html</span>
+<span class="o">[</span>root@web-7<span class="w"> </span>~/game<span class="o">]</span><span class="c1"># git add .</span>
+<span class="o">[</span>root@web-7<span class="w"> </span>~/game<span class="o">]</span><span class="c1"># git commit -m &quot;create index&quot;</span>
+<span class="o">[</span>game_v1<span class="w"> </span>0febf4c<span class="o">]</span><span class="w"> </span>create<span class="w"> </span>index
+<span class="m">1</span><span class="w"> </span>file<span class="w"> </span>changed,<span class="w"> </span><span class="m">1</span><span class="w"> </span>insertion<span class="o">(</span>+<span class="o">)</span>
+create<span class="w"> </span>mode<span class="w"> </span><span class="m">100644</span><span class="w"> </span>index.html
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：推送到远程</p>
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>game_v1
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~/game<span class="o">]</span><span class="c1"># git push origin game_v1</span>
+Counting<span class="w"> </span>objects:<span class="w"> </span><span class="m">4</span>,<span class="w"> </span><span class="k">done</span>.
+Compressing<span class="w"> </span>objects:<span class="w"> </span><span class="m">100</span>%<span class="w"> </span><span class="o">(</span><span class="m">2</span>/2<span class="o">)</span>,<span class="w"> </span><span class="k">done</span>.
+Writing<span class="w"> </span>objects:<span class="w"> </span><span class="m">100</span>%<span class="w"> </span><span class="o">(</span><span class="m">3</span>/3<span class="o">)</span>,<span class="w"> </span><span class="m">271</span><span class="w"> </span>bytes<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="m">0</span><span class="w"> </span>bytes/s,<span class="w"> </span><span class="k">done</span>.
+Total<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="o">(</span>delta<span class="w"> </span><span class="m">0</span><span class="o">)</span>,<span class="w"> </span>reused<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">(</span>delta<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+remote:<span class="w"> </span>
+remote:<span class="w"> </span>To<span class="w"> </span>create<span class="w"> </span>a<span class="w"> </span>merge<span class="w"> </span>request<span class="w"> </span><span class="k">for</span><span class="w"> </span>game_v1,<span class="w"> </span>visit:
+remote:<span class="w"> </span>http://10.0.0.200/dev/game/merge_requests/new?merge_request%5Bsource_branch%5D<span class="o">=</span>game_v1
+remote:<span class="w"> </span>
+To<span class="w"> </span>git@10.0.0.200:dev/game.git
+<span class="w"> </span>*<span class="w"> </span><span class="o">[</span>new<span class="w"> </span>branch<span class="o">]</span><span class="w">      </span>game_v1<span class="w"> </span>-&gt;<span class="w"> </span>game_v1
+</code></pre></div>
+
+<h4 id="49-merge-request"><a class="toclink" href="#49-merge-request">4.9 创建合并请求 (Merge Request)</a></h4>
+<blockquote>
+<p><strong>什么是 Merge Request？</strong></p>
+<p>Merge Request（合并请求）是 GitLab 的核心功能，用于：<br />
+- ✅ 代码审查（Code Review）<br />
+- ✅ 讨论修改内容<br />
+- ✅ 自动化测试<br />
+- ✅ 批准后才能合并</p>
+</blockquote>
+<p><strong>步骤</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">在</span><span class="w"> </span><span class="n">GitLab</span><span class="w"> </span><span class="n">Web</span><span class="w"> </span><span class="n">界面进入</span><span class="w"> </span><span class="n">game</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="n">Merge</span><span class="w"> </span><span class="n">requests</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="kr">New</span><span class="w"> </span><span class="n">merge</span><span class="w"> </span><span class="n">request</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">选择分支</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Source</span><span class="w"> </span><span class="n">branch</span><span class="p">:</span><span class="w"> </span><span class="n">game_v1</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Target</span><span class="w"> </span><span class="n">branch</span><span class="p">:</span><span class="w"> </span><span class="n">master</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写标题</span><span class="err">：</span><span class="n">Create</span><span class="w"> </span><span class="n">index</span><span class="mf">.</span><span class="n">html</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">填写描述</span><span class="err">（</span><span class="n">可选</span><span class="err">）：</span><span class="n">添加首页文件</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Create merge request&quot;</span>
+</code></pre></div>
+
+<p><strong>Merge Request 界面</strong>：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────┐
+│ Create index.html                    [合并] │
+├─────────────────────────────────────────────┤
+│ 游戏项目 - 添加首页文件                      │
+│                                             │
+│ 变更内容：                                   │
+│ + index.html                                │
+│   第一行内容：v1                            │
+│                                             │
+│ 参与者：cto, oldya_dev                      │
+│                                             │
+│ [评论] [批准] [合并]                         │
+└─────────────────────────────────────────────┘
+</code></pre></div>
+
+<h4 id="410"><a class="toclink" href="#410">4.10 合并分支</a></h4>
+<p><strong>步骤</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">cto</span><span class="w"> </span><span class="n">用户登录</span><span class="w"> </span><span class="n">GitLab</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">Merge</span><span class="w"> </span><span class="n">requests</span><span class="w"> </span><span class="n">页面</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击刚才创建的合并请求</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">审查代码变更</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Merge&quot;</span><span class="w"> </span><span class="n">按钮</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">确认合并</span>
+</code></pre></div>
+
+<p><strong>合并后的提交历史</strong>：</p>
+<div class="codehilite"><pre><span></span><code>*<span class="w"> </span>921d88e<span class="w"> </span><span class="o">(</span>HEAD<span class="w"> </span>-&gt;<span class="w"> </span>master<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>branch<span class="w"> </span><span class="s1">&#39;game_v1&#39;</span>
+<span class="p">|</span><span class="w"> </span>*<span class="w"> </span>0febf4c<span class="w"> </span><span class="o">(</span>game_v1<span class="o">)</span><span class="w"> </span>create<span class="w"> </span>index
+<span class="p">|</span>/
+*<span class="w"> </span>6f9e2f0<span class="w"> </span>initial<span class="w"> </span>commit
+</code></pre></div>
+
+<hr />
+<h3 id="5-gitlab"><a class="toclink" href="#5-gitlab">第 5 章 GitLab 备份与恢复</a></h3>
+<h4 id="51"><a class="toclink" href="#51">5.1 为什么需要备份？</a></h4>
+<blockquote>
+<p><strong>重要提示</strong>：</p>
+<p>数据无价！备份是运维的基本职责。</p>
+<p><strong>需要备份的内容</strong>：<br />
+- ✅ 代码仓库数据<br />
+- ✅ 数据库（用户、项目、Issue 等）<br />
+- ✅ 配置文件（gitlab.rb、gitlab-secrets.json）<br />
+- ✅ 上传的文件（头像、附件等）</p>
+</blockquote>
+<h4 id="52"><a class="toclink" href="#52">5.2 配置备份路径</a></h4>
+<p><strong>步骤 1</strong>：编辑配置文件</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/etc/gitlab/gitlab.rb
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：添加备份路径</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 在文件末尾添加</span>
+<span class="n">gitlab_rails</span><span class="o">[</span><span class="s1">&#39;backup_path&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/var/opt/gitlab/backups&quot;</span>
+
+<span class="c1"># 可选：设置备份保留时间（默认永久）</span>
+<span class="n">gitlab_rails</span><span class="o">[</span><span class="s1">&#39;backup_keep_time&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">604800</span><span class="w">  </span><span class="c1"># 7 天（秒）</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：重新加载配置</p>
+<div class="codehilite"><pre><span></span><code>gitlab-ctl<span class="w"> </span>reconfigure
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：创建备份目录</p>
+<div class="codehilite"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>/var/opt/gitlab/backups
+chown<span class="w"> </span>git.git<span class="w"> </span>/var/opt/gitlab/backups
+</code></pre></div>
+
+<h4 id="53"><a class="toclink" href="#53">5.3 执行备份</a></h4>
+<p><strong>备份命令</strong>：</p>
+<div class="codehilite"><pre><span></span><code>gitlab-rake<span class="w"> </span>gitlab:backup:create
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@gitlab-200<span class="w"> </span>~<span class="o">]</span><span class="c1"># gitlab-rake gitlab:backup:create</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:09<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>database<span class="w"> </span>...
+Dumping<span class="w"> </span>PostgreSQL<span class="w"> </span>database<span class="w"> </span>gitlabhq_production<span class="w"> </span>...<span class="w"> </span><span class="o">[</span>DONE<span class="o">]</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="k">done</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>repositories<span class="w"> </span>...
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="k">done</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>uploads<span class="w"> </span>...
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="k">done</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>builds<span class="w"> </span>...
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="k">done</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>artifacts<span class="w"> </span>...
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="k">done</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>pages<span class="w"> </span>...
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="k">done</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:11<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>lfs<span class="w"> </span>objects<span class="w"> </span>...
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:12<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="k">done</span>
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:12<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span>Dumping<span class="w"> </span>container<span class="w"> </span>registry<span class="w"> </span>images<span class="w"> </span>...
+<span class="m">2020</span>-08-05<span class="w"> </span><span class="m">07</span>:27:12<span class="w"> </span>+0800<span class="w"> </span>--<span class="w"> </span><span class="o">[</span>DISABLED<span class="o">]</span>
+Creating<span class="w"> </span>backup<span class="w"> </span>archive:<span class="w"> </span>1596583632_2020_08_05_13.2.2_gitlab_backup.tar<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+Uploading<span class="w"> </span>backup<span class="w"> </span>archive<span class="w"> </span>to<span class="w"> </span>remote<span class="w"> </span>storage<span class="w"> </span>...<span class="w"> </span>skipped
+Deleting<span class="w"> </span>tmp<span class="w"> </span>directories<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+<span class="k">done</span>
+Deleting<span class="w"> </span>old<span class="w"> </span>backups<span class="w"> </span>...<span class="w"> </span>skipping
+</code></pre></div>
+
+<p>⚠️ <strong>重要警告</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">Warning</span><span class="o">:</span><span class="w"> </span><span class="n">Your</span><span class="w"> </span><span class="n">gitlab</span><span class="o">.</span><span class="na">rb</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">gitlab</span><span class="o">-</span><span class="n">secrets</span><span class="o">.</span><span class="na">json</span><span class="w"> </span><span class="n">files</span><span class="w"> </span><span class="n">contain</span><span class="w"> </span><span class="n">sensitive</span><span class="w"> </span><span class="n">data</span>
+<span class="n">and</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">not</span><span class="w"> </span><span class="n">included</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">backup</span><span class="o">.</span><span class="w"> </span><span class="n">You</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">need</span><span class="w"> </span><span class="n">these</span><span class="w"> </span><span class="n">files</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">restore</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">backup</span><span class="o">.</span>
+<span class="n">Please</span><span class="w"> </span><span class="n">back</span><span class="w"> </span><span class="n">them</span><span class="w"> </span><span class="n">up</span><span class="w"> </span><span class="n">manually</span><span class="o">.</span>
+
+<span class="err">翻译：</span>
+<span class="err">警告：</span><span class="n">gitlab</span><span class="o">.</span><span class="na">rb</span><span class="w"> </span><span class="err">和</span><span class="w"> </span><span class="n">gitlab</span><span class="o">-</span><span class="n">secrets</span><span class="o">.</span><span class="na">json</span><span class="w"> </span><span class="err">文件包含敏感数据，</span>
+<span class="err">不会包含在备份中。恢复备份时需要这些文件。</span>
+<span class="err">请手动备份它们！</span>
+</code></pre></div>
+
+<h4 id="54"><a class="toclink" href="#54">5.4 备份配置文件</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 备份 gitlab-secrets.json（包含密钥）</span>
+cp<span class="w"> </span>/etc/gitlab/gitlab-secrets.json<span class="w"> </span>/backup/
+
+<span class="c1"># 备份 gitlab.rb（包含配置）</span>
+cp<span class="w"> </span>/etc/gitlab/gitlab.rb<span class="w"> </span>/backup/
+
+<span class="c1"># 查看备份结果</span>
+ll<span class="w"> </span>/backup/
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@gitlab-200<span class="w"> </span>~<span class="o">]</span><span class="c1"># ll /backup/</span>
+总用量<span class="w"> </span><span class="m">220</span>
+-rw-------<span class="w"> </span><span class="m">1</span><span class="w"> </span>git<span class="w">  </span>git<span class="w">  </span><span class="m">204800</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">5</span><span class="w"> </span><span class="m">07</span>:27<span class="w"> </span>1596583632_2020_08_05_13.2.2_gitlab_backup.tar
+-rw-------<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w">   </span><span class="m">18771</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">5</span><span class="w"> </span><span class="m">07</span>:30<span class="w"> </span>gitlab-secrets.json
+-rw-------<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w">    </span><span class="m">8542</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">5</span><span class="w"> </span><span class="m">07</span>:30<span class="w"> </span>gitlab.rb
+</code></pre></div>
+
+<p><strong>备份文件说明</strong>：<br />
+| 文件 | 大小 | 说明 |<br />
+|:---|:---:|:---|<br />
+| <code>1596583632_..._gitlab_backup.tar</code> | 200KB | 数据备份（数据库 + 代码） |<br />
+| <code>gitlab-secrets.json</code> | 18KB | 密钥文件（必须备份） |<br />
+| <code>gitlab.rb</code> | 8KB | 配置文件（建议备份） |</p>
+<h4 id="55"><a class="toclink" href="#55">5.5 恢复数据</a></h4>
+<blockquote>
+<p><strong>恢复场景</strong>：<br />
+- 服务器故障需要重建<br />
+- 数据误删除<br />
+- 系统升级失败</p>
+</blockquote>
+<p><strong>步骤 1</strong>：停止服务</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 恢复时最好不要有数据写入</span>
+gitlab-ctl<span class="w"> </span>stop
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：复制配置文件</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 恢复密钥文件</span>
+cp<span class="w"> </span>/backup/gitlab-secrets.json<span class="w"> </span>/etc/gitlab/
+
+<span class="c1"># 恢复配置文件</span>
+cp<span class="w"> </span>/backup/gitlab.rb<span class="w"> </span>/etc/gitlab/
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：执行恢复</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># BACKUP= 后面填写备份文件的时间戳部分</span>
+gitlab-rake<span class="w"> </span>gitlab:backup:restore<span class="w"> </span><span class="nv">BACKUP</span><span class="o">=</span>1596583632_2020_08_05_13.2.2
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@gitlab-200<span class="w"> </span>~<span class="o">]</span><span class="c1"># gitlab-rake gitlab:backup:restore BACKUP=1596583632_2020_08_05_13.2.2</span>
+
+Unpacking<span class="w"> </span>backup<span class="w"> </span>tar<span class="w"> </span>file<span class="w"> </span>/var/opt/gitlab/backups/1596583632_2020_08_05_13.2.2_gitlab_backup.tar<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+Restoring<span class="w"> </span>database<span class="w"> </span>...
+Restoring<span class="w"> </span>PostgreSQL<span class="w"> </span>database<span class="w"> </span>gitlabhq_production<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+Restoring<span class="w"> </span>repositories<span class="w"> </span>...
+<span class="k">done</span>
+Restoring<span class="w"> </span>uploads<span class="w"> </span>...
+<span class="k">done</span>
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：重新加载配置</p>
+<div class="codehilite"><pre><span></span><code>gitlab-ctl<span class="w"> </span>reconfigure
+</code></pre></div>
+
+<p><strong>步骤 5</strong>：启动服务</p>
+<div class="codehilite"><pre><span></span><code>gitlab-ctl<span class="w"> </span>start
+</code></pre></div>
+
+<p><strong>步骤 6</strong>：验证恢复</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 检查服务状态</span>
+gitlab-ctl<span class="w"> </span>status
+
+<span class="c1"># 访问 Web 界面</span>
+<span class="c1"># http://10.0.0.200</span>
+
+<span class="c1"># 检查数据是否完整</span>
+-<span class="w"> </span>项目是否存在
+-<span class="w"> </span>用户是否可以登录
+-<span class="w"> </span>代码是否可以访问
+</code></pre></div>
+
+<h4 id="56"><a class="toclink" href="#56">5.6 定时备份（可选）</a></h4>
+<p><strong>配置 crontab 定时备份</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 编辑 crontab</span>
+crontab<span class="w"> </span>-e
+
+<span class="c1"># 添加每天凌晨 2 点备份</span>
+<span class="m">0</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>/opt/gitlab/bin/gitlab-rake<span class="w"> </span>gitlab:backup:create<span class="w"> </span><span class="nv">CRON</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+
+<p><strong>说明</strong>：<br />
+- <code>CRON=1</code>：抑制部分输出，适合定时任务<br />
+- 备份文件会保存在配置的备份路径<br />
+- 建议配合日志记录</p>
+<hr />
+<h2 id="jenkins_1"><a class="toclink" href="#jenkins_1">第三部分：Jenkins 持续集成</a></h2>
+<h3 id="6-jenkins"><a class="toclink" href="#6-jenkins">第 6 章 Jenkins 安装配置</a></h3>
+<h4 id="61-jenkins"><a class="toclink" href="#61-jenkins">6.1 安装 Jenkins</a></h4>
+<p><strong>步骤 1</strong>：安装 JDK</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Jenkins 需要 Java 环境</span>
+rpm<span class="w"> </span>-ivh<span class="w"> </span>jdk-8u181-linux-x64.rpm
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：安装 Jenkins</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 下载 Jenkins RPM 包</span>
+<span class="c1"># 清华源：https://mirrors.tuna.tsinghua.edu.cn/jenkins/redhat/</span>
+
+<span class="c1"># 安装</span>
+rpm<span class="w"> </span>-ivh<span class="w"> </span>jenkins-2.176.1-1.1.noarch.rpm
+</code></pre></div>
+
+<h4 id="62"><a class="toclink" href="#62">6.2 目录文件说明</a></h4>
+<div class="codehilite"><pre><span></span><code>rpm<span class="w"> </span>-ql<span class="w"> </span>jenkins<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@jenkins<span class="w"> </span>~<span class="o">]</span><span class="c1"># rpm -ql jenkins</span>
+/etc/init.d/jenkins<span class="w">          </span><span class="c1"># 启动脚本（SysV）</span>
+/etc/logrotate.d/jenkins<span class="w">     </span><span class="c1"># 日志切割配置</span>
+/etc/sysconfig/jenkins<span class="w">       </span><span class="c1"># 主配置文件</span>
+/usr/lib/jenkins<span class="w">             </span><span class="c1"># 安装目录</span>
+/usr/lib/jenkins/jenkins.war<span class="w"> </span><span class="c1"># Jenkins 主程序</span>
+/var/lib/jenkins<span class="w">             </span><span class="c1"># 数据目录（重要！）</span>
+/var/log/jenkins<span class="w">             </span><span class="c1"># 日志目录</span>
+</code></pre></div>
+
+<p><strong>重要目录说明</strong>：<br />
+| 目录 | 说明 | 备份建议 |<br />
+|:---|:---|:---:|<br />
+| <code>/var/lib/jenkins</code> | 工作空间、插件、配置 | ✅ 必须备份 |<br />
+| <code>/var/log/jenkins</code> | 日志文件 | ⚠️ 可选备份 |<br />
+| <code>/etc/sysconfig/jenkins</code> | 配置文件 | ✅ 必须备份 |</p>
+<h4 id="63-root"><a class="toclink" href="#63-root">6.3 配置使用 root 账户运行</a></h4>
+<blockquote>
+<p><strong>为什么需要 root？</strong></p>
+<p>默认情况下，Jenkins 以 <code>jenkins</code> 用户运行，权限受限。<br />
+某些操作（如 SSH 连接、部署脚本）需要 root 权限。</p>
+</blockquote>
+<p><strong>步骤 1</strong>：编辑配置文件</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/etc/sysconfig/jenkins
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：修改用户</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 找到这一行</span>
+<span class="nv">JENKINS_USER</span><span class="o">=</span><span class="s2">&quot;jenkins&quot;</span>
+
+<span class="c1"># 修改为</span>
+<span class="nv">JENKINS_USER</span><span class="o">=</span><span class="s2">&quot;root&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：重启 Jenkins</p>
+<div class="codehilite"><pre><span></span><code>systemctl<span class="w"> </span>restart<span class="w"> </span>jenkins
+</code></pre></div>
+
+<h4 id="64-jenkins"><a class="toclink" href="#64-jenkins">6.4 启动 Jenkins</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 启动服务</span>
+systemctl<span class="w"> </span>start<span class="w"> </span>jenkins
+
+<span class="c1"># 设置开机自启</span>
+systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>jenkins
+
+<span class="c1"># 查看状态</span>
+systemctl<span class="w"> </span>status<span class="w"> </span>jenkins
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@jenkins<span class="w"> </span>~<span class="o">]</span><span class="c1"># systemctl status jenkins</span>
+●<span class="w"> </span>jenkins.service<span class="w"> </span>-<span class="w"> </span>Jenkins<span class="w"> </span>Continuous<span class="w"> </span>Integration<span class="w"> </span>Server
+<span class="w">   </span>Loaded:<span class="w"> </span>loaded<span class="w"> </span><span class="o">(</span>/usr/lib/systemd/system/jenkins.service<span class="p">;</span><span class="w"> </span>enabled<span class="o">)</span>
+<span class="w">   </span>Active:<span class="w"> </span>active<span class="w"> </span><span class="o">(</span>running<span class="o">)</span><span class="w"> </span>since<span class="w"> </span>Thu<span class="w"> </span><span class="m">2026</span>-03-21<span class="w"> </span><span class="m">10</span>:00:00<span class="w"> </span>CST
+<span class="w">   </span>Main<span class="w"> </span>PID:<span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="o">(</span>java<span class="o">)</span>
+<span class="w">   </span>Status:<span class="w"> </span><span class="s2">&quot;Running&quot;</span>
+</code></pre></div>
+
+<h4 id="65-jenkins"><a class="toclink" href="#65-jenkins">6.5 解锁 Jenkins</a></h4>
+<p><strong>步骤 1</strong>：浏览器访问</p>
+<div class="codehilite"><pre><span></span><code>http://10.0.0.201:8080
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：获取管理员密码</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>/var/lib/jenkins/secrets/initialAdminPassword
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@jenkins<span class="w"> </span>~<span class="o">]</span><span class="c1"># cat /var/lib/jenkins/secrets/initialAdminPassword</span>
+a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：输入密码解锁</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────┐
+│  Unlock Jenkins                             │
+├─────────────────────────────────────────────┤
+│  请输入管理员密码：                          │
+│  ┌─────────────────────────────────────┐   │
+│  │ a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6    │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│            [继续]                           │
+└─────────────────────────────────────────────┘
+</code></pre></div>
+
+<h4 id="66"><a class="toclink" href="#66">6.6 配置插件源</a></h4>
+<p><strong>步骤 1</strong>：选择插件安装</p>
+<div class="codehilite"><pre><span></span><code>推荐选择：
+✓ Install suggested plugins（安装推荐插件）
+
+或者：
+○ Select plugins to install（手动选择）
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：配置清华源（如果默认源太慢）</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">插件管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">高级</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;Update Site&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">修改为</span><span class="err">：</span>
+<span class="w">   </span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">mirrors</span><span class="mf">.</span><span class="n">tuna</span><span class="mf">.</span><span class="n">tsinghua</span><span class="mf">.</span><span class="n">edu</span><span class="mf">.</span><span class="n">cn</span><span class="o">/</span><span class="n">jenkins</span><span class="o">/</span><span class="n">updates</span><span class="o">/</span><span class="n">update</span><span class="o">-</span><span class="n">center</span><span class="mf">.</span><span class="n">json</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;提交&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;检查现在&quot;</span>
+</code></pre></div>
+
+<h4 id="67"><a class="toclink" href="#67">6.7 创建管理员账户</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="n">填写信息</span><span class="err">：</span>
+<span class="o">-</span><span class="w"> </span><span class="n">用户名</span><span class="err">：</span><span class="n">admin</span>
+<span class="o">-</span><span class="w"> </span><span class="n">密码</span><span class="err">：</span><span class="n">Admin</span><span class="mi">@2026</span><span class="err">（</span><span class="n">强密码</span><span class="err">）</span>
+<span class="o">-</span><span class="w"> </span><span class="n">姓名</span><span class="err">：</span><span class="n">Jenkins</span><span class="w"> </span><span class="n">Admin</span>
+<span class="o">-</span><span class="w"> </span><span class="n">邮箱</span><span class="err">：</span><span class="n">admin</span><span class="p">@</span><span class="n">example</span><span class="p">.</span><span class="n">com</span>
+</code></pre></div>
+
+<h4 id="68"><a class="toclink" href="#68">6.8 完成安装</a></h4>
+<div class="codehilite"><pre><span></span><code>实例配置：
+- Jenkins URL: http://10.0.0.201:8080
+- 点击 &quot;保存并完成&quot;
+- 点击 &quot;开始使用 Jenkins&quot;
+</code></pre></div>
+
+<hr />
+<h3 id="7-jenkins-gitlab"><a class="toclink" href="#7-jenkins-gitlab">第 7 章 Jenkins 与 GitLab 集成</a></h3>
+<h4 id="71-gitlab"><a class="toclink" href="#71-gitlab">7.1 GitLab 导入项目</a></h4>
+<p><strong>步骤 1</strong>：准备项目</p>
+<div class="codehilite"><pre><span></span><code>示例项目：H5 小游戏
+项目地址：https://gitee.com/skips/game.git
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：导入到 GitLab</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">登录</span><span class="w"> </span><span class="n">GitLab</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;New project&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;Import project&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;Repo by URL&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Git</span><span class="w"> </span><span class="n">repository</span><span class="w"> </span><span class="n">URL</span><span class="p">:</span><span class="w"> </span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">gitee</span><span class="mf">.</span><span class="n">com</span><span class="o">/</span><span class="n">skips</span><span class="o">/</span><span class="n">game</span><span class="mf">.</span><span class="n">git</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">h5game</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Visibility</span><span class="p">:</span><span class="w"> </span><span class="n">Private</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Create project&quot;</span>
+</code></pre></div>
+
+<h4 id="72-jenkins-gitlab"><a class="toclink" href="#72-jenkins-gitlab">7.2 配置 Jenkins 访问 GitLab 权限</a></h4>
+<blockquote>
+<p><strong>核心问题</strong>：Jenkins 如何从 GitLab 拉取代码？</p>
+</blockquote>
+<p><strong>解决方案</strong>：使用部署公钥（Deploy Key）</p>
+<p><strong>部署公钥的作用</strong>：</p>
+<div class="codehilite"><pre><span></span><code>┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Jenkins    │ →   │  Deploy Key │ →   │   GitLab    │
+│  (私钥)     │     │  (公钥)     │     │  (项目授权)  │
+└─────────────┘     └─────────────┘     └─────────────┘
+
+优势：
+✅ 不需要创建虚拟用户
+✅ 直接在项目中关联公钥
+✅ 权限可控（只读/读写）
+</code></pre></div>
+
+<p><strong>步骤 1</strong>：获取 Jenkins 公钥</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 在 Jenkins 服务器上生成 SSH 密钥</span>
+ssh-keygen<span class="w"> </span>-f<span class="w"> </span>/root/.ssh/id_rsa<span class="w"> </span>-N<span class="w"> </span><span class="s1">&#39;&#39;</span>
+
+<span class="c1"># 查看公钥</span>
+cat<span class="w"> </span>/root/.ssh/id_rsa.pub
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@jenkins-201<span class="w"> </span>~<span class="o">]</span><span class="c1"># cat .ssh/id_rsa.pub</span>
+ssh-rsa<span class="w"> </span>AAAAB3NzaC1yc2EAAAADAQABAAABAQCg8+DQFOjR+gl1Xw83CIyGJ50vI4DBeTaMRFdu5+5pT/IMnYq1iS7/lRS6JxXLYvVeNMDUfDxA1sOL70okyA3npjASXgJPGE1FsbpqzWjsN0TAGoZkR1VWuP9Yn0CrH7dA4lhZQfUUVjvqzFBZK8N9iZMzIu6KOiSY/aD4Ol59vbDS4kO0rTG1DYQNnjZzMPNlIiJ+0EVkfuYRwABRFA8fmL+6btqZqhjGY29EHuIfzIMTDTysrtCTGxQn2ql1zwjReGiNXzmFncwvyy92DAuMbnOQiE1YNn72wThy2oWSHsCwKdIvcNHqY2xBvFnkZ9Ltga7PgR33kbJ7Gl8tjiZF<span class="w"> </span>root@jenkins-201
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：GitLab 添加部署公钥</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">登录</span><span class="w"> </span><span class="n">GitLab</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">h5game</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">Settings</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Repository</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Deploy</span><span class="w"> </span><span class="n">Keys</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add deploy key&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Title</span><span class="p">:</span><span class="w"> </span><span class="n">jenkins</span><span class="o">-</span><span class="n">deploy</span><span class="o">-</span><span class="n">key</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Key</span><span class="p">:</span><span class="w"> </span><span class="n">粘贴刚才复制的公钥</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="err">✓</span><span class="w"> </span><span class="n">Grant</span><span class="w"> </span><span class="n">write</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="n">these</span><span class="w"> </span><span class="n">keys</span><span class="err">（</span><span class="n">勾选</span><span class="err">，</span><span class="n">允许推送</span><span class="err">）</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add key&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：Jenkins 配置私钥凭证</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">登录</span><span class="w"> </span><span class="n">Jenkins</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Manage</span><span class="w"> </span><span class="n">Credentials</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Global credentials (unrestricted)&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add credentials&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">选择</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Kind</span><span class="p">:</span><span class="w"> </span><span class="n">SSH</span><span class="w"> </span><span class="n">Username</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">private</span><span class="w"> </span><span class="n">key</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">ID</span><span class="p">:</span><span class="w"> </span><span class="n">gitlab</span><span class="o">-</span><span class="n">deploy</span><span class="o">-</span><span class="n">key</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Description</span><span class="p">:</span><span class="w"> </span><span class="n">GitLab</span><span class="w"> </span><span class="n">Deploy</span><span class="w"> </span><span class="n">Key</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Username</span><span class="p">:</span><span class="w"> </span><span class="n">git</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Private</span><span class="w"> </span><span class="n">Key</span><span class="p">:</span>
+<span class="w">     </span><span class="err">○</span><span class="w"> </span><span class="n">Enter</span><span class="w"> </span><span class="n">directly</span>
+<span class="w">     </span><span class="n">粘贴</span><span class="w"> </span><span class="o">/</span><span class="n">root</span><span class="o">/</span><span class="mf">.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_rsa</span><span class="w"> </span><span class="n">的内容</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;确定&quot;</span>
+</code></pre></div>
+
+<h4 id="73-jenkins"><a class="toclink" href="#73-jenkins">7.3 创建 Jenkins 项目</a></h4>
+<p><strong>步骤 1</strong>：新建任务</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;新建任务&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">输入任务名称</span><span class="err">：</span><span class="n">h5game</span><span class="o">-</span><span class="n">deploy</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;自由风格软件项目&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;确定&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：配置源码管理</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;Git&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">Repository</span><span class="w"> </span><span class="n">URL</span><span class="o">:</span>
+<span class="w">   </span><span class="n">git</span><span class="mf">@10.0.0.200</span><span class="o">:</span><span class="n">dev</span><span class="o">/</span><span class="n">h5game</span><span class="p">.</span><span class="n">git</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">Credentials</span><span class="o">:</span>
+<span class="w">   </span><span class="n">选择刚才添加的</span><span class="w"> </span><span class="s">&quot;gitlab-deploy-key&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">Branch</span><span class="w"> </span><span class="n">Specifier</span><span class="o">:</span>
+<span class="w">   </span><span class="o">*/</span><span class="n">master</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：测试拉取代码</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;构建&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="s">&quot;立即构建&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">查看控制台输出</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">确认代码已拉取到</span><span class="err">：</span>
+<span class="w">   </span><span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">jenkins</span><span class="o">/</span><span class="n">workspace</span><span class="o">/</span><span class="n">h5game</span><span class="o">-</span><span class="n">deploy</span><span class="o">/</span>
+</code></pre></div>
+
+<p><strong>验证拉取结果</strong>：</p>
+<div class="codehilite"><pre><span></span><code>ll<span class="w"> </span>/var/lib/jenkins/workspace/h5game-deploy/
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@jenkins-201<span class="w"> </span>~<span class="o">]</span><span class="c1"># ll /var/lib/jenkins/workspace/h5game-deploy/</span>
+总用量<span class="w"> </span><span class="m">16</span>
+drwxr-xr-x<span class="w"> </span><span class="m">4</span><span class="w"> </span>jenkins<span class="w"> </span>jenkins<span class="w"> </span><span class="m">47</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">09</span>:37<span class="w"> </span>game
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>jenkins<span class="w"> </span>jenkins<span class="w"> </span><span class="m">9349</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">09</span>:37<span class="w"> </span>LICENSE
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>jenkins<span class="w"> </span>jenkins<span class="w"> </span><span class="m">937</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">09</span>:37<span class="w"> </span>README.md
+</code></pre></div>
+
+<h4 id="74"><a class="toclink" href="#74">7.4 编写部署脚本</a></h4>
+<p><strong>步骤 1</strong>：创建脚本目录</p>
+<div class="codehilite"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>/scripts/jenkins/
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：编写部署脚本</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>&gt;<span class="w"> </span>/scripts/jenkins/deploy.sh<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">#!/bin/bash</span>
+<span class="s"># ============================================</span>
+<span class="s"># 功能：Jenkins 自动部署脚本</span>
+<span class="s"># 用途：将 Jenkins 构建的代码部署到 Web 服务器</span>
+<span class="s"># 作者：运维团队</span>
+<span class="s"># 版本：v1.0</span>
+<span class="s"># ============================================</span>
+
+<span class="s"># 定义变量</span>
+<span class="s">PATH_CODE=/var/lib/jenkins/workspace/h5game-deploy/</span>
+<span class="s">PATH_WEB=/usr/share/nginx</span>
+<span class="s">TIME=$(date +%Y%m%d-%H%M)</span>
+<span class="s">IP=10.0.0.7</span>
+
+<span class="s"># 步骤 1：打包代码</span>
+<span class="s">echo &quot;=== 打包代码 ===&quot;</span>
+<span class="s">cd ${PATH_CODE}</span>
+<span class="s">tar zcf /opt/${TIME}-web.tar.gz ./*</span>
+
+<span class="s"># 步骤 2：发送到 Web 服务器</span>
+<span class="s">echo &quot;=== 发送代码到 ${IP} ===&quot;</span>
+<span class="s">ssh ${IP} &quot;mkdir -p ${PATH_WEB}/${TIME}-web&quot;</span>
+<span class="s">scp /opt/${TIME}-web.tar.gz ${IP}:${PATH_WEB}/${TIME}-web</span>
+
+<span class="s"># 步骤 3：Web 服务器解压</span>
+<span class="s">echo &quot;=== 解压代码 ===&quot;</span>
+<span class="s">ssh ${IP} &quot;cd ${PATH_WEB}/${TIME}-web &amp;&amp; tar xf ${TIME}-web.tar.gz &amp;&amp; rm -rf ${TIME}-web.tar.gz&quot;</span>
+
+<span class="s"># 步骤 4：切换软链接</span>
+<span class="s">echo &quot;=== 切换软链接 ===&quot;</span>
+<span class="s">ssh ${IP} &quot;cd ${PATH_WEB} &amp;&amp; rm -rf html &amp;&amp; ln -s ${TIME}-web html&quot;</span>
+
+<span class="s">echo &quot;=== 部署完成 ===&quot;</span>
+<span class="s">EOF</span>
+
+<span class="c1"># 添加执行权限</span>
+chmod<span class="w"> </span>+x<span class="w"> </span>/scripts/jenkins/deploy.sh
+</code></pre></div>
+
+<p><strong>脚本说明</strong>：<br />
+| 步骤 | 操作 | 说明 |<br />
+|:---:|:---|:---|<br />
+| 1 | 打包代码 | 使用 tar 压缩工作区代码 |<br />
+| 2 | 发送代码 | 通过 scp 发送到 Web 服务器 |<br />
+| 3 | 解压代码 | 在 Web 服务器解压 |<br />
+| 4 | 切换链接 | 更新 html 软链接指向新版本 |</p>
+<p><strong>部署原理图</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="err">┌─────────────┐</span><span class="w">     </span><span class="err">┌─────────────┐</span><span class="w">     </span><span class="err">┌─────────────┐</span>
+<span class="err">│</span><span class="w">   </span><span class="n">Jenkins</span><span class="w">   </span><span class="err">│</span><span class="w"> </span><span class="err">→</span><span class="w">   </span><span class="err">│</span><span class="w">  </span><span class="n">Web</span><span class="w"> </span><span class="n">Server</span><span class="w"> </span><span class="err">│</span><span class="w"> </span><span class="err">→</span><span class="w">   </span><span class="err">│</span><span class="w">    </span><span class="err">用户</span><span class="w">     </span><span class="err">│</span>
+<span class="err">│</span><span class="w">  </span><span class="err">打包代码</span><span class="w">   </span><span class="err">│</span><span class="w">     </span><span class="err">│</span><span class="w">  </span><span class="err">解压部署</span><span class="w">   </span><span class="err">│</span><span class="w">     </span><span class="err">│</span><span class="w">  </span><span class="err">访问网站</span><span class="w">   </span><span class="err">│</span>
+<span class="err">└─────────────┘</span><span class="w">     </span><span class="err">└─────────────┘</span><span class="w">     </span><span class="err">└─────────────┘</span>
+<span class="w">      </span><span class="err">↓</span><span class="w">                   </span><span class="err">↓</span>
+<span class="w">  </span><span class="mi">20260321</span><span class="o">-</span><span class="mi">1013</span><span class="o">-</span><span class="n">web</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span>
+<span class="w">                        </span><span class="err">↓</span>
+<span class="w">              </span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span>
+<span class="w">              </span><span class="err">├──</span><span class="w"> </span><span class="mi">20260321</span><span class="o">-</span><span class="mi">1013</span><span class="o">-</span><span class="n">web</span><span class="o">/</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="err">新版本</span>
+<span class="w">              </span><span class="err">├──</span><span class="w"> </span><span class="mi">20260321</span><span class="o">-</span><span class="mi">0915</span><span class="o">-</span><span class="n">web</span><span class="o">/</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="err">旧版本</span>
+<span class="w">              </span><span class="err">└──</span><span class="w"> </span><span class="n">html</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="mi">20260321</span><span class="o">-</span><span class="mi">1013</span><span class="o">-</span><span class="n">web</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="err">软链接</span>
+</code></pre></div>
+
+<h4 id="75-jenkins"><a class="toclink" href="#75-jenkins">7.5 Jenkins 调用部署脚本</a></h4>
+<p><strong>步骤 1</strong>：添加构建步骤</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入项目配置</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;构建&quot;</span><span class="w"> </span><span class="n">部分</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;添加构建步骤&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="s">&quot;执行 shell&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写命令</span><span class="err">：</span>
+<span class="w">   </span><span class="o">/</span><span class="n">scripts</span><span class="o">/</span><span class="n">jenkins</span><span class="o">/</span><span class="n">deploy</span><span class="mf">.</span><span class="n">sh</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：立即构建</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;立即构建&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">查看控制台输出</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：验证部署</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 在 Web 服务器上查看</span>
+ll<span class="w"> </span>/usr/share/nginx/
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~<span class="o">]</span><span class="c1"># ll /usr/share/nginx/</span>
+总用量<span class="w"> </span><span class="m">0</span>
+drwxr-xr-x<span class="w"> </span><span class="m">3</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">10</span>:13<span class="w"> </span><span class="m">20260321</span>-1013-web
+lrwxrwxrwx<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">17</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">10</span>:13<span class="w"> </span>html<span class="w"> </span>-&gt;<span class="w"> </span><span class="m">20260321</span>-1013-web
+</code></pre></div>
+
+<p>⚠️ <strong>权限问题处理</strong>：</p>
+<p>如果构建失败，提示权限不足：</p>
+<div class="codehilite"><pre><span></span><code>Permission denied
+</code></pre></div>
+
+<p><strong>解决方法</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 修改 Jenkins 以 root 用户运行</span>
+vim<span class="w"> </span>/etc/sysconfig/jenkins
+<span class="nv">JENKINS_USER</span><span class="o">=</span><span class="s2">&quot;root&quot;</span>
+
+<span class="c1"># 重启 Jenkins</span>
+systemctl<span class="w"> </span>restart<span class="w"> </span>jenkins
+</code></pre></div>
+
+<h4 id="76-webhook"><a class="toclink" href="#76-webhook">7.6 配置 Webhook 自动触发</a></h4>
+<blockquote>
+<p><strong>什么是 Webhook？</strong></p>
+<p>Webhook 是一种回调机制，当 GitLab 发生事件（如代码推送）时，自动通知 Jenkins 触发构建。</p>
+</blockquote>
+<p><strong>工作流程</strong>：</p>
+<div class="codehilite"><pre><span></span><code>开发人员推送代码
+      ↓
+  GitLab 仓库
+      ↓
+  Webhook 触发
+      ↓
+  Jenkins 构建
+      ↓
+  自动部署
+</code></pre></div>
+
+<p><strong>Jenkins 端配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入项目配置</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;构建触发器&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;Build when a change is pushed to GitLab&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;GitLab Connection&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<p><strong>GitLab 端配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">h5game</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">Settings</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nb">Int</span><span class="n">egrations</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">URL</span><span class="p">:</span><span class="w"> </span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">10.0.0.201</span><span class="p">:</span><span class="mf">8080</span><span class="o">/</span><span class="n">project</span><span class="o">/</span><span class="n">h5game</span><span class="o">-</span><span class="n">deploy</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Secret</span><span class="w"> </span><span class="kr">To</span><span class="n">ken</span><span class="p">:</span><span class="w"> </span><span class="err">（</span><span class="n">Jenkins</span><span class="w"> </span><span class="n">生成的</span><span class="w"> </span><span class="kr">to</span><span class="n">ken</span><span class="err">）</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">勾选</span><span class="err">：</span>
+<span class="w">   </span><span class="err">✓</span><span class="w"> </span><span class="n">Push</span><span class="w"> </span><span class="n">events</span>
+<span class="w">   </span><span class="err">✓</span><span class="w"> </span><span class="n">Merge</span><span class="w"> </span><span class="n">request</span><span class="w"> </span><span class="n">events</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add webhook&quot;</span>
+</code></pre></div>
+
+<p>⚠️ <strong>GitLab 版本问题</strong>：</p>
+<p>如果添加 Webhook 报错：</p>
+<div class="codehilite"><pre><span></span><code>URL is blocked: Requests to localhost are not allowed
+</code></pre></div>
+
+<p><strong>解决方法</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">Admin</span><span class="w"> </span><span class="n">Area</span><span class="err">（</span><span class="n">管理员区域</span><span class="err">）</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">Settings</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Network</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">勾选</span><span class="err">：</span>
+<span class="w">   </span><span class="err">✓</span><span class="w"> </span><span class="n">Allow</span><span class="w"> </span><span class="n">hooks</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="n">make</span><span class="w"> </span><span class="n">requests</span><span class="w"> </span><span class="kr">to</span><span class="w"> </span><span class="n">local</span><span class="w"> </span><span class="n">networks</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Save changes&quot;</span>
+</code></pre></div>
+
+<p><strong>测试 Webhook</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">在</span><span class="w"> </span><span class="n">Webhook</span><span class="w"> </span><span class="n">页面</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Test</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;Push events&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">查看状态码</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="mf">200</span><span class="err">：</span><span class="n">成功</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="mf">401</span><span class="err">：</span><span class="n">认证失败</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="mf">404</span><span class="err">：</span><span class="n">URL</span><span class="w"> </span><span class="n">错误</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="mf">500</span><span class="err">：</span><span class="n">服务器错误</span>
+</code></pre></div>
+
+<hr />
+<h3 id="8-jenkins"><a class="toclink" href="#8-jenkins">第 8 章 Jenkins 参数化构建</a></h3>
+<h4 id="81-tag"><a class="toclink" href="#81-tag">8.1 Tag 方式发布版本</a></h4>
+<blockquote>
+<p><strong>为什么使用 Tag 发布？</strong></p>
+<p>使用 Tag 可以：<br />
+- ✅ 明确版本号（v1.0、v2.0）<br />
+- ✅ 快速回滚到任意版本<br />
+- ✅ 生产环境版本可追溯</p>
+</blockquote>
+<p><strong>Git 端打标签</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># v1.0 版本</span>
+git<span class="w"> </span>commit<span class="w"> </span>-am<span class="w"> </span><span class="s1">&#39;v1.0 版本更新&#39;</span>
+git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v1.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;v1.0 稳定版&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>v1.0
+
+<span class="c1"># v2.0 版本</span>
+git<span class="w"> </span>commit<span class="w"> </span>-am<span class="w"> </span><span class="s1">&#39;v2.0 版本更新&#39;</span>
+git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v2.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;v2.0 稳定版&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>v2.0
+
+<span class="c1"># 查看标签</span>
+git<span class="w"> </span>tag
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@gitlab<span class="w"> </span>h5game<span class="o">]</span><span class="c1"># git tag</span>
+v1.0
+v2.0
+</code></pre></div>
+
+<p><strong>GitLab 查看标签</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">h5game</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Tags&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">可以看到</span><span class="w"> </span><span class="n">v1</span><span class="mf">.0</span><span class="w"> </span><span class="n">和</span><span class="w"> </span><span class="n">v2</span><span class="mf">.0</span><span class="w"> </span><span class="n">两个标签</span>
+</code></pre></div>
+
+<h4 id="82-jenkins"><a class="toclink" href="#82-jenkins">8.2 Jenkins 参数化构建配置</a></h4>
+<p><strong>步骤 1</strong>：新建参数化构建项目</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;新建任务&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">输入任务名称</span><span class="err">：</span><span class="n">h5game</span><span class="o">-</span><span class="n">deploy</span><span class="o">-</span><span class="n">rollback</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;参数化构建过程&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;自由风格软件项目&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;确定&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：添加 Git 参数</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;添加参数&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="s">&quot;Git Parameter&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="n">git_version</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Parameter</span><span class="w"> </span><span class="n">Type</span><span class="p">:</span><span class="w"> </span><span class="n">Tag</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Tag</span><span class="w"> </span><span class="n">Filter</span><span class="p">:</span><span class="w"> </span><span class="o">*</span><span class="err">（</span><span class="n">所有标签</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Selected</span><span class="w"> </span><span class="nb">Val</span><span class="n">ue</span><span class="p">:</span><span class="w"> </span><span class="n">FIRST</span><span class="err">（</span><span class="n">默认选第一个</span><span class="err">）</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：配置源码管理</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;Git&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">Repository</span><span class="w"> </span><span class="n">URL</span><span class="o">:</span>
+<span class="w">   </span><span class="n">git</span><span class="mf">@10.0.0.200</span><span class="o">:</span><span class="n">dev</span><span class="o">/</span><span class="n">h5game</span><span class="p">.</span><span class="n">git</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">Credentials</span><span class="o">:</span>
+<span class="w">   </span><span class="n">选择</span><span class="w"> </span><span class="n">gitlab</span><span class="o">-</span><span class="n">deploy</span><span class="o">-</span><span class="n">key</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">Branch</span><span class="w"> </span><span class="n">Specifier</span><span class="o">:</span>
+<span class="w">   </span><span class="n">$git_version</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="n">使用参数</span>
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：添加部署脚本</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;构建&quot;</span><span class="w"> </span><span class="n">部分</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;添加构建步骤&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="s">&quot;执行 shell&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">填写命令</span><span class="err">：</span>
+<span class="w">   </span><span class="o">/</span><span class="n">scripts</span><span class="o">/</span><span class="n">jenkins</span><span class="o">/</span><span class="n">deploy_rollback</span><span class="mf">.</span><span class="n">sh</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<h4 id="83"><a class="toclink" href="#83">8.3 优化部署脚本（支持回滚）</a></h4>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>&gt;/scripts/jenkins/deploy_rollback.sh<span class="s">&lt;&lt;&#39;EOF&#39;</span>
+<span class="s">#!/bin/bash</span>
+<span class="s"># ============================================</span>
+<span class="s"># 功能：Jenkins 部署和回滚脚本</span>
+<span class="s"># 用途：支持版本发布和回滚操作</span>
+<span class="s"># 作者：运维团队</span>
+<span class="s"># 版本：v2.0</span>
+<span class="s"># ============================================</span>
+
+<span class="s"># 定义变量</span>
+<span class="s">PATH_CODE=/var/lib/jenkins/workspace/h5game-deploy-rollback/</span>
+<span class="s">PATH_WEB=/usr/share/nginx</span>
+<span class="s">IP=10.0.0.7</span>
+
+<span class="s"># 函数：打包代码</span>
+<span class="s">code_tar(){</span>
+<span class="s">    cd ${PATH_CODE}</span>
+<span class="s">    tar zcf /opt/web-${git_version}.tar.gz ./*</span>
+<span class="s">}</span>
+
+<span class="s"># 函数：发送代码</span>
+<span class="s">code_scp(){</span>
+<span class="s">    ssh ${IP} &quot;mkdir -p ${PATH_WEB}/web-${git_version}&quot;</span>
+<span class="s">    scp /opt/web-${git_version}.tar.gz ${IP}:${PATH_WEB}/web-${git_version}</span>
+<span class="s">}</span>
+
+<span class="s"># 函数：解压代码</span>
+<span class="s">code_xf(){</span>
+<span class="s">    ssh ${IP} &quot;cd ${PATH_WEB}/web-${git_version} &amp;&amp; tar xf web-${git_version}.tar.gz &amp;&amp; rm -rf web-${git_version}.tar.gz&quot;</span>
+<span class="s">}</span>
+
+<span class="s"># 函数：创建软链接</span>
+<span class="s">code_ln(){</span>
+<span class="s">    ssh ${IP} &quot;cd ${PATH_WEB} &amp;&amp; rm -rf html &amp;&amp; ln -s web-${git_version} html&quot;</span>
+<span class="s">}</span>
+
+<span class="s"># 主函数</span>
+<span class="s">main(){</span>
+<span class="s">    code_tar</span>
+<span class="s">    code_scp</span>
+<span class="s">    code_xf</span>
+<span class="s">    code_ln</span>
+<span class="s">}</span>
+
+<span class="s"># 选择发布还是回滚</span>
+<span class="s">if [ &quot;${deploy_env}&quot; == &quot;deploy&quot; ]</span>
+<span class="s">then</span>
+<span class="s">    # 检查是否已部署</span>
+<span class="s">    ssh ${IP} &quot;ls ${PATH_WEB}/web-${git_version}&quot; &gt;/dev/null 2&gt;&amp;1</span>
+<span class="s">    if [ $? == 0 -a ${GIT_COMMIT} == ${GIT_PREVIOUS_SUCCESSFUL_COMMIT} ]</span>
+<span class="s">    then</span>
+<span class="s">        echo &quot;web-${git_version} 已部署，不允许重复构建&quot;</span>
+<span class="s">        exit 1</span>
+<span class="s">    else</span>
+<span class="s">        echo &quot;=== 开始部署 ${git_version} ===&quot;</span>
+<span class="s">        main</span>
+<span class="s">    fi</span>
+<span class="s">elif [ &quot;${deploy_env}&quot; == &quot;rollback&quot; ]</span>
+<span class="s">then</span>
+<span class="s">    echo &quot;=== 开始回滚到 ${git_version} ===&quot;</span>
+<span class="s">    code_ln</span>
+<span class="s">fi</span>
+
+<span class="s">echo &quot;=== 操作完成 ===&quot;</span>
+<span class="s">EOF</span>
+
+chmod<span class="w"> </span>+x<span class="w"> </span>/scripts/jenkins/deploy_rollback.sh
+</code></pre></div>
+
+<h4 id="84"><a class="toclink" href="#84">8.4 添加回滚选项</a></h4>
+<p><strong>步骤</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入项目配置</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;参数化构建过程&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;添加参数&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="s">&quot;Choice Parameter&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="n">deploy_env</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Choices</span><span class="p">:</span>
+<span class="n">deploy</span>
+<span class="n">rollback</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Description</span><span class="p">:</span><span class="w"> </span><span class="n">选择部署或回滚</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<h4 id="85"><a class="toclink" href="#85">8.5 测试发布和回滚</a></h4>
+<p><strong>测试 v1.0 发布</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Build with Parameters&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">选择</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">git_version</span><span class="p">:</span><span class="w"> </span><span class="n">v1</span><span class="mf">.0</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">deploy_env</span><span class="p">:</span><span class="w"> </span><span class="n">deploy</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;构建&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">查看控制台输出</span>
+</code></pre></div>
+
+<p><strong>测试 v2.0 发布</strong>：</p>
+<div class="codehilite"><pre><span></span><code>重复上述步骤，选择 v2.0
+</code></pre></div>
+
+<p><strong>测试回滚到 v1.0</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Build with Parameters&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">选择</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">git_version</span><span class="p">:</span><span class="w"> </span><span class="n">v1</span><span class="mf">.0</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">deploy_env</span><span class="p">:</span><span class="w"> </span><span class="n">rollback</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;构建&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">查看控制台输出</span>
+</code></pre></div>
+
+<p><strong>验证结果</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 在 Web 服务器上查看</span>
+ll<span class="w"> </span>/usr/share/nginx/
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@web-7<span class="w"> </span>~<span class="o">]</span><span class="c1"># ll /usr/share/nginx/</span>
+总用量<span class="w"> </span><span class="m">0</span>
+lrwxrwxrwx<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">16</span>:56<span class="w"> </span>html<span class="w"> </span>-&gt;<span class="w"> </span>web-v1.0<span class="w">  </span>←<span class="w"> </span>已回滚
+drwxr-xr-x<span class="w"> </span><span class="m">3</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">68</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">16</span>:51<span class="w"> </span>web-v1.0
+drwxr-xr-x<span class="w"> </span><span class="m">3</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">68</span><span class="w"> </span><span class="m">8</span><span class="w"> </span>月<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">16</span>:52<span class="w"> </span>web-v2.0
+</code></pre></div>
+
+<hr />
+<h2 id="sonarqube_1"><a class="toclink" href="#sonarqube_1">第四部分：SonarQube 代码质量</a></h2>
+<h3 id="9-sonarqube"><a class="toclink" href="#9-sonarqube">第 9 章 SonarQube 部署</a></h3>
+<h4 id="91-mysqlsonarqube"><a class="toclink" href="#91-mysqlsonarqube">9.1 安装 MySQL（SonarQube 数据库）</a></h4>
+<blockquote>
+<p><strong>为什么需要 MySQL？</strong></p>
+<p>SonarQube 使用数据库存储：<br />
+- ✅ 代码扫描结果<br />
+- ✅ 用户信息<br />
+- ✅ 项目配置<br />
+- ✅ 历史记录</p>
+</blockquote>
+<p><strong>步骤 1</strong>：下载 MySQL</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/soft
+wget<span class="w"> </span>https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：解压</p>
+<div class="codehilite"><pre><span></span><code>tar<span class="w"> </span>zxf<span class="w"> </span>mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz<span class="w"> </span>-C<span class="w"> </span>/opt/
+mv<span class="w"> </span>/opt/mysql-5.7.28-linux-glibc2.12-x86_64<span class="w"> </span>/opt/mysql-5.7.28
+ln<span class="w"> </span>-s<span class="w"> </span>/opt/mysql-5.7.28<span class="w"> </span>/opt/mysql
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：设置环境变量</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;export PATH=</span><span class="nv">$PATH</span><span class="s2">:/opt/mysql/bin&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/profile
+<span class="nb">source</span><span class="w"> </span>/etc/profile
+
+<span class="c1"># 验证</span>
+mysql<span class="w"> </span>-V
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@sonar<span class="w"> </span>~<span class="o">]</span><span class="c1"># mysql -V</span>
+mysql<span class="w">  </span>Ver<span class="w"> </span><span class="m">14</span>.14<span class="w"> </span>Distrib<span class="w"> </span><span class="m">5</span>.7.28,<span class="w"> </span><span class="k">for</span><span class="w"> </span>linux-glibc2.12<span class="w"> </span><span class="o">(</span>x86_64<span class="o">)</span><span class="w"> </span>using<span class="w">  </span>EditLine<span class="w"> </span>wrapper
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：清除遗留环境</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 卸载 MariaDB（如果已安装）</span>
+rpm<span class="w"> </span>-qa<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>mariadb
+yum<span class="w"> </span>remove<span class="w"> </span>mariadb-libs<span class="w"> </span>-y
+
+<span class="c1"># 删除旧配置</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>/etc/my.cnf
+</code></pre></div>
+
+<p><strong>步骤 5</strong>：安装依赖</p>
+<div class="codehilite"><pre><span></span><code>yum<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>libaio-devel
+</code></pre></div>
+
+<p><strong>步骤 6</strong>：创建用户</p>
+<div class="codehilite"><pre><span></span><code>useradd<span class="w"> </span>-s<span class="w"> </span>/sbin/nologin<span class="w"> </span>-M<span class="w"> </span>mysql
+chown<span class="w"> </span>-R<span class="w"> </span>mysql.mysql<span class="w"> </span>/data/
+chown<span class="w"> </span>-R<span class="w"> </span>mysql.mysql<span class="w"> </span>/opt/mysql*
+</code></pre></div>
+
+<p><strong>步骤 7</strong>：初始化数据库</p>
+<div class="codehilite"><pre><span></span><code>mysqld<span class="w"> </span>--initialize-insecure<span class="w"> </span>--user<span class="o">=</span>mysql<span class="w"> </span>--basedir<span class="o">=</span>/opt/mysql<span class="w"> </span>--datadir<span class="o">=</span>/data/mysql_3306/
+</code></pre></div>
+
+<p>⚠️ <strong>说明</strong>：<br />
+- <code>--initialize-insecure</code>：初始密码为空<br />
+- 首次启动后需要设置密码</p>
+<p><strong>步骤 8</strong>：配置文件</p>
+<div class="codehilite"><pre><span></span><code>cat&gt;<span class="w"> </span>/etc/my.cnf<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
+<span class="s">[mysqld]</span>
+<span class="s">user=mysql</span>
+<span class="s">basedir=/opt/mysql</span>
+<span class="s">datadir=/data/mysql_3306</span>
+<span class="s">socket=/tmp/mysql.sock</span>
+
+<span class="s">[mysql]</span>
+<span class="s">socket=/tmp/mysql.sock</span>
+<span class="s">EOF</span>
+</code></pre></div>
+
+<p><strong>步骤 9</strong>：启动数据库</p>
+<div class="codehilite"><pre><span></span><code>cp<span class="w"> </span>/opt/mysql/support-files/mysql.server<span class="w"> </span>/etc/init.d/mysqld
+chkconfig<span class="w"> </span>--add<span class="w"> </span>mysqld
+systemctl<span class="w"> </span>start<span class="w"> </span>mysqld
+
+<span class="c1"># 验证</span>
+netstat<span class="w"> </span>-lntup<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">3306</span>
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@sonar<span class="w"> </span>~<span class="o">]</span><span class="c1"># netstat -lntup | grep 3306</span>
+tcp<span class="w">        </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w"> </span><span class="m">0</span>.0.0.0:3306<span class="w">            </span><span class="m">0</span>.0.0.0:*<span class="w">               </span>LISTEN<span class="w">      </span><span class="m">1234</span>/mysqld
+</code></pre></div>
+
+<p><strong>步骤 10</strong>：设置密码</p>
+<div class="codehilite"><pre><span></span><code>mysqladmin<span class="w"> </span>-u<span class="w"> </span>root<span class="w"> </span>password<span class="w"> </span><span class="m">123456</span>
+</code></pre></div>
+
+<h4 id="92-sonarqube"><a class="toclink" href="#92-sonarqube">9.2 安装 SonarQube</a></h4>
+<p><strong>步骤 1</strong>：安装 Java</p>
+<div class="codehilite"><pre><span></span><code>yum<span class="w"> </span>install<span class="w"> </span>java<span class="w"> </span>-y
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：解压</p>
+<div class="codehilite"><pre><span></span><code>unzip<span class="w"> </span>sonarqube-7.0.zip<span class="w"> </span>-d<span class="w"> </span>/opt/
+ln<span class="w"> </span>-s<span class="w"> </span>/opt/sonarqube-7.0/<span class="w"> </span>/opt/sonarqube
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：创建用户</p>
+<div class="codehilite"><pre><span></span><code>useradd<span class="w"> </span>sonar<span class="w"> </span>-M<span class="w"> </span>-s<span class="w"> </span>/sbin/nologin
+chown<span class="w"> </span>-R<span class="w"> </span>sonar.sonar<span class="w"> </span>/opt/sonarqube*
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：配置数据库连接</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/opt/sonarqube/conf/sonar.properties
+</code></pre></div>
+
+<p><strong>添加配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="na">sonar.jdbc.username</span><span class="o">=</span><span class="s">root</span>
+<span class="na">sonar.jdbc.password</span><span class="o">=</span><span class="s">123456</span>
+<span class="na">sonar.jdbc.url</span><span class="o">=</span><span class="s">jdbc:mysql://localhost:3306/sonar?useUnicode=true&amp;characterEncoding=utf8&amp;rewriteBatchedStatements=true&amp;useConfigs=maxPerformance&amp;useSSL=false</span>
+</code></pre></div>
+
+<p><strong>步骤 5</strong>：指定启动用户</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/opt/sonarqube/bin/linux-x86-64/sonar.sh
+</code></pre></div>
+
+<p><strong>添加配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">RUN_AS_USER</span><span class="o">=</span>sonar
+</code></pre></div>
+
+<p><strong>步骤 6</strong>：创建数据库</p>
+<div class="codehilite"><pre><span></span><code>mysql<span class="w"> </span>-uroot<span class="w"> </span>-p123456<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;create database sonar default character set utf8;&#39;</span>
+mysql<span class="w"> </span>-uroot<span class="w"> </span>-p123456<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;show databases;&#39;</span>
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code>+--------------------+
+<span class="p">|</span><span class="w"> </span>Database<span class="w">           </span><span class="p">|</span>
++--------------------+
+<span class="p">|</span><span class="w"> </span>information_schema<span class="w"> </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span>mysql<span class="w">              </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span>performance_schema<span class="w"> </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span>sonar<span class="w">              </span><span class="p">|</span>
+<span class="p">|</span><span class="w"> </span><span class="nb">test</span><span class="w">               </span><span class="p">|</span>
++--------------------+
+</code></pre></div>
+
+<p><strong>步骤 7</strong>：编写 systemd 启动文件</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>&gt;/usr/lib/systemd/system/sonar.service<span class="s">&lt;&lt;&#39;EOF&#39;</span>
+<span class="s">[Unit]</span>
+<span class="s">Description=SonarQube Service</span>
+
+<span class="s">[Service]</span>
+<span class="s">Type=forking</span>
+<span class="s">ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start</span>
+<span class="s">ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop</span>
+<span class="s">User=sonar</span>
+<span class="s">Group=sonar</span>
+
+<span class="s">[Install]</span>
+<span class="s">WantedBy=multi-user.target</span>
+<span class="s">EOF</span>
+</code></pre></div>
+
+<p><strong>步骤 8</strong>：启动服务</p>
+<div class="codehilite"><pre><span></span><code>systemctl<span class="w"> </span>daemon-reload
+systemctl<span class="w"> </span>start<span class="w"> </span>sonar.service
+</code></pre></div>
+
+<p><strong>步骤 9</strong>：检查服务</p>
+<div class="codehilite"><pre><span></span><code>netstat<span class="w"> </span>-lntup<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>java
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@sonar<span class="w"> </span>~<span class="o">]</span><span class="c1"># netstat -lntup | grep java</span>
+tcp6<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w"> </span>:::9000<span class="w">                 </span>:::*<span class="w">                    </span>LISTEN<span class="w">      </span><span class="m">18305</span>/java
+tcp6<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w"> </span><span class="m">127</span>.0.0.1:9001<span class="w">          </span>:::*<span class="w">                    </span>LISTEN<span class="w">      </span><span class="m">18227</span>/java
+</code></pre></div>
+
+<p><strong>说明</strong>：<br />
+- <code>9000</code>：Web 访问端口<br />
+- <code>9001</code>：Elasticsearch 端口</p>
+<h4 id="93"><a class="toclink" href="#93">9.3 解决启动报错</a></h4>
+<p>⚠️ <strong>常见问题</strong>：max file descriptors 太低</p>
+<p><strong>错误日志</strong>：</p>
+<div class="codehilite"><pre><span></span><code>tail<span class="w"> </span>-f<span class="w"> </span>/opt/sonarqube/logs/es.log
+
+<span class="c1"># 看到：</span>
+max<span class="w"> </span>file<span class="w"> </span>descriptors<span class="w"> </span><span class="o">[</span><span class="m">4096</span><span class="o">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>elasticsearch<span class="w"> </span>process<span class="w"> </span>is<span class="w"> </span>too<span class="w"> </span>low,<span class="w"> </span>increase<span class="w"> </span>to<span class="w"> </span>at<span class="w"> </span>least<span class="w"> </span><span class="o">[</span><span class="m">65536</span><span class="o">]</span>
+max<span class="w"> </span>virtual<span class="w"> </span>memory<span class="w"> </span>areas<span class="w"> </span>vm.max_map_count<span class="w"> </span><span class="o">[</span><span class="m">65530</span><span class="o">]</span><span class="w"> </span>is<span class="w"> </span>too<span class="w"> </span>low,<span class="w"> </span>increase<span class="w"> </span>to<span class="w"> </span>at<span class="w"> </span>least<span class="w"> </span><span class="o">[</span><span class="m">262144</span><span class="o">]</span>
+</code></pre></div>
+
+<p><strong>解决方法</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 增加文件描述符限制</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;root - nofile 65536&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/security/limits.conf
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;sonar - nofile 65536&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/security/limits.conf
+
+<span class="c1"># 增加虚拟内存限制</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;vm.max_map_count=262144&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/sysctl.conf
+sysctl<span class="w"> </span>-p
+
+<span class="c1"># 重启 SonarQube</span>
+systemctl<span class="w"> </span>restart<span class="w"> </span>sonar.service
+</code></pre></div>
+
+<h4 id="94-sonarqube"><a class="toclink" href="#94-sonarqube">9.4 初始化 SonarQube</a></h4>
+<p><strong>步骤 1</strong>：浏览器访问</p>
+<div class="codehilite"><pre><span></span><code>http://10.0.0.203:9000
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：登录</p>
+<div class="codehilite"><pre><span></span><code>用户名：admin
+密码：admin
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：修改密码</p>
+<div class="codehilite"><pre><span></span><code><span class="n">首次登录会要求修改密码</span><span class="err">：</span>
+<span class="o">-</span><span class="w"> </span><span class="n">原密码</span><span class="err">：</span><span class="n">admin</span>
+<span class="o">-</span><span class="w"> </span><span class="n">新密码</span><span class="err">：</span><span class="n">Sonar</span><span class="mi">@2026</span><span class="err">（</span><span class="n">强密码</span><span class="err">）</span>
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：生成 Token</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">点击右上角头像</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">My</span><span class="w"> </span><span class="n">Account</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">Security</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Generate</span><span class="w"> </span><span class="kr">To</span><span class="n">kens</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="n">jenkins</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Type</span><span class="p">:</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Analysis</span><span class="w"> </span><span class="kr">To</span><span class="n">ken</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Generate&quot;</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">复制生成的</span><span class="w"> </span><span class="kr">To</span><span class="n">ken</span><span class="err">（</span><span class="n">只显示一次</span><span class="err">！）</span>
+</code></pre></div>
+
+<p><strong>Token 示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">4</span><span class="n">f57dfb332463fa8220be49856a0f1d27c88a142</span>
+</code></pre></div>
+
+<p>⚠️ <strong>重要</strong>：Token 只显示一次，务必保存好！</p>
+<hr />
+<h3 id="10-sonarqube-jenkins"><a class="toclink" href="#10-sonarqube-jenkins">第 10 章 SonarQube 与 Jenkins 集成</a></h3>
+<h4 id="101-sonar"><a class="toclink" href="#101-sonar">10.1 安装 Sonar 客户端</a></h4>
+<p><strong>步骤 1</strong>：下载客户端</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/opt/
+wget<span class="w"> </span>https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.0.0.1744-linux.zip
+unzip<span class="w"> </span>sonar-scanner-cli-4.0.0.1744-linux.zip<span class="w"> </span>-d<span class="w"> </span>/opt/
+ln<span class="w"> </span>-s<span class="w"> </span>sonar-scanner-4.0.0.1744-linux<span class="w"> </span>sonar-scanner
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：设置环境变量</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;export PATH=$PATH:/opt/sonar-scanner/bin&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/profile
+<span class="nb">source</span><span class="w"> </span>/etc/profile
+
+<span class="c1"># 验证</span>
+sonar-scanner<span class="w"> </span>-v
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：配置文件（可选）</p>
+<div class="codehilite"><pre><span></span><code>vim<span class="w"> </span>/opt/sonar-scanner/conf/sonar-scanner.properties
+</code></pre></div>
+
+<p><strong>添加配置</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="na">sonar.host.url</span><span class="o">=</span><span class="s">http://10.0.0.203:9000</span>
+<span class="na">sonar.login</span><span class="o">=</span><span class="s">4f57dfb332463fa8220be49856a0f1d27c88a142</span>
+<span class="na">sonar.sourceEncoding</span><span class="o">=</span><span class="s">UTF-8</span>
+</code></pre></div>
+
+<h4 id="102-sonarqube"><a class="toclink" href="#102-sonarqube">10.2 推送代码到 SonarQube</a></h4>
+<p><strong>步骤 1</strong>：进入代码目录</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/var/lib/jenkins/workspace/h5game-deploy/
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：执行扫描</p>
+<div class="codehilite"><pre><span></span><code>/opt/sonar-scanner/bin/sonar-scanner<span class="w"> </span><span class="se">\</span>
+-Dsonar.projectKey<span class="o">=</span>h5game<span class="w"> </span><span class="se">\</span>
+-Dsonar.sources<span class="o">=</span>.<span class="w"> </span><span class="se">\</span>
+-Dsonar.host.url<span class="o">=</span>http://10.0.0.203:9000<span class="w"> </span><span class="se">\</span>
+-Dsonar.login<span class="o">=</span>4f57dfb332463fa8220be49856a0f1d27c88a142
+</code></pre></div>
+
+<p><strong>输出示例</strong>：</p>
+<div class="codehilite"><pre><span></span><code><span class="o">[</span>root@jenkins<span class="w"> </span>h5game<span class="o">]</span><span class="c1"># sonar-scanner \</span>
+&gt;<span class="w"> </span>-Dsonar.projectKey<span class="o">=</span>h5game<span class="w"> </span><span class="se">\</span>
+&gt;<span class="w"> </span>-Dsonar.sources<span class="o">=</span>.<span class="w"> </span><span class="se">\</span>
+&gt;<span class="w"> </span>-Dsonar.host.url<span class="o">=</span>http://10.0.0.203:9000<span class="w"> </span><span class="se">\</span>
+&gt;<span class="w"> </span>-Dsonar.login<span class="o">=</span>4f57dfb332463fa8220be49856a0f1d27c88a142
+
+INFO:<span class="w"> </span>Scanner<span class="w"> </span>configuration<span class="w"> </span>file:<span class="w"> </span>/opt/sonar-scanner/conf/sonar-scanner.properties
+INFO:<span class="w"> </span>Project<span class="w"> </span>root<span class="w"> </span>configuration<span class="w"> </span>file:<span class="w"> </span>/var/lib/jenkins/workspace/h5game/sonar-project.properties
+
+INFO:<span class="w"> </span>Analyzing<span class="w"> </span>sources
+INFO:<span class="w"> </span>------------------------------------------------------------------------
+INFO:<span class="w"> </span>EXECUTION<span class="w"> </span>SUCCESS
+INFO:<span class="w"> </span>------------------------------------------------------------------------
+INFO:<span class="w"> </span>Total<span class="w"> </span>time:<span class="w"> </span><span class="m">10</span>.123s
+INFO:<span class="w"> </span>Final<span class="w"> </span>Memory:<span class="w"> </span>12M/491M
+INFO:<span class="w"> </span>------------------------------------------------------------------------
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：查看扫描结果</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">浏览器访问</span><span class="w"> </span><span class="n">SonarQube</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">查看</span><span class="w"> </span><span class="n">h5game</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">查看</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Bugs</span><span class="err">（</span><span class="n">Bug</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Vulnerabilities</span><span class="err">（</span><span class="n">漏洞</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Code</span><span class="w"> </span><span class="n">Smells</span><span class="err">（</span><span class="n">代码异味</span><span class="err">）</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Coverage</span><span class="err">（</span><span class="n">覆盖率</span><span class="err">）</span>
+</code></pre></div>
+
+<h4 id="103-jenkins-sonarqube"><a class="toclink" href="#103-jenkins-sonarqube">10.3 Jenkins 集成 SonarQube</a></h4>
+<p><strong>步骤 1</strong>：安装 SonarQube 插件</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">插件管理</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">可选插件</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">搜索</span><span class="w"> </span><span class="s">&quot;SonarQube&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;SonarQube Scanner for Jenkins&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;直接安装&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：配置 SonarQube 服务器</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">系统配置</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;SonarQube servers&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add SonarQube&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="n">sonarqube</span><span class="o">-</span><span class="n">server</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Server</span><span class="w"> </span><span class="n">URL</span><span class="p">:</span><span class="w"> </span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">10.0.0.203</span><span class="p">:</span><span class="mf">9000</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Server</span><span class="w"> </span><span class="n">authentication</span><span class="w"> </span><span class="kr">to</span><span class="n">ken</span><span class="p">:</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;Add&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="s">&quot;Jenkins&quot;</span>
+<span class="w">     </span><span class="n">粘贴刚才生成的</span><span class="w"> </span><span class="kr">To</span><span class="n">ken</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：配置 Sonar 工具</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">系统管理</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">全局工具配置</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;SonarQube Scanner&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;Install automatically&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">选择版本</span><span class="err">（</span><span class="n">或自动安装</span><span class="err">）</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;保存&quot;</span>
+</code></pre></div>
+
+<h4 id="104-sonar"><a class="toclink" href="#104-sonar">10.4 项目配置 Sonar 扫描</a></h4>
+<p><strong>步骤 1</strong>：进入项目配置</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">进入</span><span class="w"> </span><span class="n">h5game</span><span class="o">-</span><span class="n">deploy</span><span class="w"> </span><span class="n">项目</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;配置&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：添加构建环境</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;构建环境&quot;</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">勾选</span><span class="w"> </span><span class="s">&quot;Prepare SonarQube Scanner environment&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：添加构建步骤</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">找到</span><span class="w"> </span><span class="s">&quot;构建&quot;</span><span class="w"> </span><span class="n">部分</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">点击</span><span class="w"> </span><span class="s">&quot;添加构建步骤&quot;</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">选择</span><span class="w"> </span><span class="s">&quot;SonarQube Scanner&quot;</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">填写</span><span class="err">：</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Key</span><span class="p">:</span><span class="w"> </span><span class="n">h5game</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Name</span><span class="p">:</span><span class="w"> </span><span class="err">${</span><span class="n">JOB_NAME</span><span class="err">}</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="n">Version</span><span class="p">:</span><span class="w"> </span><span class="err">${</span><span class="n">git_version</span><span class="err">}</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Source</span><span class="w"> </span><span class="n">Encoding</span><span class="p">:</span><span class="w"> </span><span class="n">UTF</span><span class="o">-</span><span class="mf">8</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Additional</span><span class="w"> </span><span class="n">properties</span><span class="p">:</span>
+<span class="w">     </span><span class="n">sonar</span><span class="mf">.</span><span class="n">sources</span><span class="o">=</span><span class="mf">.</span>
+</code></pre></div>
+
+<p><strong>步骤 4</strong>：调整构建顺序</p>
+<div class="codehilite"><pre><span></span><code>重要！构建顺序应该是：
+1. SonarQube Scanner（先扫描）
+2. Execute shell（后部署）
+
+拖动调整顺序，然后点击 &quot;保存&quot;
+</code></pre></div>
+
+<h4 id="105"><a class="toclink" href="#105">10.5 测试完整流程</a></h4>
+<p><strong>步骤 1</strong>：修改代码</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/var/lib/jenkins/workspace/h5game/
+vim<span class="w"> </span>index.html
+<span class="c1"># 添加一些代码</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;v5.0 稳定版&quot;</span>
+git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v5.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;v5.0 稳定版&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>v5.0
+</code></pre></div>
+
+<p><strong>步骤 2</strong>：触发构建</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">Jenkins</span><span class="w"> </span><span class="n">自动触发</span><span class="err">（</span><span class="n">Webhook</span><span class="err">）</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">或手动</span><span class="w"> </span><span class="s">&quot;Build with Parameters&quot;</span>
+</code></pre></div>
+
+<p><strong>步骤 3</strong>：查看结果</p>
+<div class="codehilite"><pre><span></span><code>Jenkins 控制台：
+- 查看 SonarQube 扫描结果
+- 查看部署日志
+
+SonarQube Web：
+- 查看代码质量报告
+- 查看 Bug、漏洞、代码异味
+</code></pre></div>
+
+<hr />
+<h2 id="_2"><a class="toclink" href="#_2">📚 学习资源</a></h2>
+<h3 id="_3"><a class="toclink" href="#_3">官方文档</a></h3>
+<ul>
+<li><a href="https://docs.gitlab.com/">GitLab 文档</a></li>
+<li><a href="https://www.jenkins.io/doc/">Jenkins 文档</a></li>
+<li><a href="https://docs.sonarqube.org/">SonarQube 文档</a></li>
+</ul>
+<h3 id="_4"><a class="toclink" href="#_4">镜像源</a></h3>
+<ul>
+<li>清华大学开源软件镜像站：https://mirrors.tuna.tsinghua.edu.cn/</li>
+<li>GitLab CE YUM 源：https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/</li>
+<li>Jenkins RPM 源：https://mirrors.tuna.tsinghua.edu.cn/jenkins/redhat/</li>
+</ul>
+<hr />
+<h2 id="_5"><a class="toclink" href="#_5">🎯 实战练习</a></h2>
+<h3 id="1-cicd"><a class="toclink" href="#1-cicd">练习 1：搭建完整 CI/CD 环境</a></h3>
+<div class="codehilite"><pre><span></span><code>目标：在 5 台服务器上搭建完整的 CI/CD 流水线
+
+步骤：
+1. 安装 GitLab（10.0.0.200）
+2. 安装 Jenkins（10.0.0.201）
+3. 安装 SonarQube（10.0.0.203）
+4. 配置 Webhook 自动触发
+5. 实现：代码提交 → 自动扫描 → 自动部署
+</code></pre></div>
+
+<h3 id="2_1"><a class="toclink" href="#2_1">练习 2：权限管理实验</a></h3>
+<div class="codehilite"><pre><span></span><code>目标：掌握 GitLab 权限管理
+
+步骤：
+1. 创建 dev 和 ops 两个组
+2. 创建 3 个用户（cto、dev、ops）
+3. 配置不同的访问权限
+4. 测试权限控制
+</code></pre></div>
+
+<h3 id="3"><a class="toclink" href="#3">练习 3：版本发布与回滚</a></h3>
+<div class="codehilite"><pre><span></span><code>目标：掌握参数化构建
+
+步骤：
+1. 使用 Tag 方式发布 v1.0、v2.0、v3.0
+2. 测试回滚到指定版本
+3. 实现一键发布和回滚
+</code></pre></div>
+
+<hr />
+<h2 id="_6"><a class="toclink" href="#_6">📝 总结</a></h2>
+<p>本教程涵盖了从 Git 基础到企业级 CI/CD 流水线的完整内容：</p>
+<p>✅ <strong>Git 基础</strong> - 版本控制核心技能（回顾）<br />
+✅ <strong>GitLab</strong> - 企业级代码管理平台<br />
+✅ <strong>Jenkins</strong> - 持续集成/持续部署<br />
+✅ <strong>SonarQube</strong> - 代码质量管理  </p>
+<p>掌握这些工具，你将能够搭建完整的企业级 DevOps 流水线！</p>
+<hr />
+<p><strong>教程版本</strong>: v2.2（优化版）<br />
+<strong>更新时间</strong>: 2026-03-21<br />
+<strong>仓库地址</strong>: https://github.com/hjs2015/git-tutorial<br />
+<strong>前置教程</strong>: <a href="./Git 完全指南.md">Git 完全指南.md</a></p>
+        </article>
+    </div>
+    
+    <div class="footer">
+        <p>
+            <a href="https://github.com/hjs2015/git-tutorial" target="_blank">GitHub 仓库</a> | 
+            采用 CC BY-SA 4.0 许可证
+        </p>
+        <p>最后更新：2026-03-21</p>
+    </div>
+</body>
+</html>
