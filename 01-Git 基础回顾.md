@@ -5498,9 +5498,349 @@ git rebase --continue
 | `git reflog expire` | 过期引用日志 | 全部 | `git reflog expire --expire=now --all` |
 | `git filter-branch` | 重写历史 | 全部 | `git filter-branch --force ...` ⚠️ |
 
+
 ---
 
-## 附录 B：Git 工作流对比
+## 附录 B：高频命令快速检索
+
+### B.1 按场景快速查找
+
+#### 场景 1：开始新项目
+
+| 步骤 | 命令 | 说明 |
+|:---|:---|:---|
+| 1 | `git init` | 初始化本地仓库 |
+| 2 | `git remote add origin <url>` | 关联远程仓库 |
+| 3 | `git add .` | 添加所有文件 |
+| 4 | `git commit -m "Initial commit"` | 首次提交 |
+| 5 | `git push -u origin main` | 推送到远程 |
+
+---
+
+#### 场景 2：克隆现有项目
+
+| 步骤 | 命令 | 说明 |
+|:---|:---|:---|
+| 1 | `git clone <url>` | 克隆仓库 |
+| 2 | `cd <repo>` | 进入目录 |
+| 3 | `git branch -a` | 查看所有分支 |
+| 4 | `git switch -c feature` | 创建功能分支 |
+
+---
+
+#### 场景 3：日常开发流程
+
+| 步骤 | 命令 | 说明 |
+|:---|:---|:---|
+| 1 | `git switch main` | 切换到主分支 |
+| 2 | `git pull origin main` | 拉取最新代码 |
+| 3 | `git switch -c feature/xxx` | 创建功能分支 |
+| 4 | `git add .` | 添加更改 |
+| 5 | `git commit -m "feat: xxx"` | 提交 |
+| 6 | `git push -u origin feature/xxx` | 推送 |
+| 7 | 创建 Pull Request | 代码审查 |
+
+---
+
+#### 场景 4：撤销操作
+
+| 场景 | 命令 | 说明 |
+|:---|:---|:---|
+| 恢复工作区文件 | `git restore <file>` | 丢弃未暂存的修改 |
+| 从暂存区恢复 | `git restore --staged <file>` | 取消暂存 |
+| 撤销上次提交 | `git reset --soft HEAD~1` | 保留更改和暂存 |
+| 撤销提交和暂存 | `git reset HEAD~1` | 保留更改，清空暂存 |
+| 彻底撤销提交 | `git reset --hard HEAD~1` ⚠️ | 丢弃所有更改 |
+| 安全回滚提交 | `git revert <commit>` | 创建新提交来撤销 |
+
+---
+
+#### 场景 5：分支管理
+
+| 场景 | 命令 | 说明 |
+|:---|:---|:---|
+| 查看分支 | `git branch` | 本地分支 |
+| 查看所有分支 | `git branch -a` | 含远程分支 |
+| 创建分支 | `git branch <name>` | 创建不切换 |
+| 创建并切换 | `git switch -c <name>` | 推荐 |
+| 切换分支 | `git switch <name>` | 推荐 |
+| 合并分支 | `git merge <branch>` | 合并到当前分支 |
+| 删除分支 | `git branch -d <name>` | 安全删除 |
+| 强制删除 | `git branch -D <name>` | 未合并时使用 |
+
+---
+
+#### 场景 6：解决冲突
+
+| 步骤 | 命令 | 说明 |
+|:---|:---|:---|
+| 1 | `git merge <branch>` | 触发冲突 |
+| 2 | `git status` | 查看冲突文件 |
+| 3 | 编辑文件解决冲突 | 手动或 VS Code |
+| 4 | `git add <file>` | 标记解决 |
+| 5 | `git commit` | 完成合并 |
+| 6 | `git merge --abort` | 放弃合并（可选） |
+
+---
+
+#### 场景 7：查看历史
+
+| 场景 | 命令 | 说明 |
+|:---|:---|:---|
+| 查看日志 | `git log` | 完整日志 |
+| 简洁日志 | `git log --oneline` | 一行一个提交 |
+| 图形化日志 | `git log --graph --oneline` | 分支图 |
+| 查看特定文件 | `git log <file>` | 文件历史 |
+| 查看作者 | `git log --author="John"` | 按作者过滤 |
+| 查看时间范围 | `git log --since="2 weeks ago"` | 时间过滤 |
+| 查看提交详情 | `git show <commit>` | 单个提交 |
+| 查看引用日志 | `git reflog` | 所有操作记录 |
+
+---
+
+#### 场景 8：远程协作
+
+| 场景 | 命令 | 说明 |
+|:---|:---|:---|
+| 查看远程 | `git remote -v` | 远程仓库地址 |
+| 获取远程 | `git fetch origin` | 不合并 |
+| 拉取并合并 | `git pull origin main` | fetch + merge |
+| 拉取并变基 | `git pull --rebase origin main` | fetch + rebase |
+| 推送分支 | `git push origin main` | 推送 |
+| 推送并设置上游 | `git push -u origin main` | 首次推送 |
+| 强制推送 | `git push --force-with-lease` ⚠️ | 安全强制推送 |
+| 删除远程分支 | `git push origin --delete <branch>` | 删除 |
+
+---
+
+#### 场景 9：标签管理
+
+| 场景 | 命令 | 说明 |
+|:---|:---|:---|
+| 查看标签 | `git tag` | 所有标签 |
+| 创建轻量标签 | `git tag v1.0.0` | 简单标签 |
+| 创建附注标签 | `git tag -a v1.0.0 -m "msg"` | 带信息 |
+| 推送标签 | `git push origin v1.0.0` | 单个 |
+| 推送所有标签 | `git push origin --tags` | 全部 |
+| 删除标签 | `git tag -d v1.0.0` | 本地 |
+
+---
+
+#### 场景 10：暂存操作
+
+| 场景 | 命令 | 说明 |
+|:---|:---|:---|
+| 暂存更改 | `git stash` | 保存工作区 |
+| 查看暂存 | `git stash list` | 列表 |
+| 恢复暂存 | `git stash pop` | 恢复并删除 |
+| 应用暂存 | `git stash apply` | 恢复不删除 |
+| 删除暂存 | `git stash drop` | 删除 |
+
+---
+
+### B.2 命令快速索引
+
+| 命令 | 说明 | 章节 | 命令 | 说明 | 章节 |
+|:---|:---|:---:|:---|:---|:---:|
+| `git add` | 添加到暂存区 | 2.4 | `git restore` | 恢复文件 | 2.6 |
+| `git bisect` | 二分查找 | D.3 | `git revert` | 回滚提交 | 2.6 |
+| `git branch` | 分支管理 | 3.2 | `git show` | 查看详情 | 2.7 |
+| `git checkout` | 切换分支（传统） | 3.4 | `git stash` | 暂存操作 | 9.2 |
+| `git cherry-pick` | 选择性合并 | 3.11 | `git status` | 查看状态 | 2.3 |
+| `git clone` | 克隆仓库 | 1.2 | `git switch` | 切换分支 | 3.4 |
+| `git commit` | 提交 | 2.5 | `git tag` | 标签管理 | 第 4 章 |
+| `git diff` | 查看差异 | 2.10 | `git worktree` | 工作树 | D.5 |
+| `git fetch` | 获取远程 | 5.2 | `git log` | 查看日志 | 2.7 |
+| `git init` | 初始化仓库 | 2.1 | `git merge` | 合并分支 | 3.5 |
+| `git pull` | 拉取 | 5.4 | `git push` | 推送 | 5.3 |
+| `git rebase` | 变基 | 3.7 | `git reset` | 重置 | 2.6 |
+| `git reflog` | 引用日志 | 9.3 | `git remote` | 远程管理 | 5.1 |
+
+---
+
+## 附录 C：核心流程可视化图
+
+### C.1 Git 分支合并流程
+
+```
+          功能分支 (feature)
+         /                  \
+        /   开发新功能       \
+       /                     \
+      /                       \
+-----A---------B--------------C----- main (主分支)
+     ↑         ↑              ↑
+   分支点    继续开发      合并点
+
+合并命令：git merge feature
+
+合并后：
+-----A---------B--------------C----- main
+                                ↑
+                            feature (指向同一提交)
+```
+
+**合并类型对比**：
+
+```
+【快进合并 (Fast-forward)】
+main:  A ─────→ B ─────→ C
+                    ↑
+              feature (直接前移)
+
+【三方合并 (Three-way)】
+main:  A ─────→ B ─────→ D (合并提交)
+                    ╲   ╱
+              feature  C
+```
+
+---
+
+### C.2 git reset 三种模式详解
+
+```
+提交历史：
+commit-1 → commit-2 → commit-3 → commit-4
+                              ↑
+                           HEAD (当前)
+
+【模式 1: --soft】只移动 HEAD，保留所有更改
+git reset --soft HEAD~2
+
+结果：
+commit-1 → commit-2 → commit-3 → commit-4
+         ↑                    ↑
+      HEAD                工作区/暂存区 (保留 commit-3,4 的更改)
+
+【模式 2: --mixed (默认)】移动 HEAD，重置暂存区
+git reset HEAD~2
+
+结果：
+commit-1 → commit-2 → commit-3 → commit-4
+         ↑                    ↑
+      HEAD              工作区 (保留更改)
+                        暂存区 (清空)
+
+【模式 3: --hard】移动 HEAD，丢弃所有更改 ⚠️
+git reset --hard HEAD~2
+
+结果：
+commit-1 → commit-2 → commit-3 → commit-4
+         ↑                    ↑
+      HEAD              工作区/暂存区 (全部丢弃)
+```
+
+---
+
+### C.3 rebase vs merge 对比
+
+```
+【merge 合并】保留完整历史
+main:    A ─────→ B ─────→ D (合并提交)
+                      ╲   ╱
+            feature      C
+
+【rebase 变基】线性历史
+main:    A ─────→ B ─────→ C' ─────→ D'
+                      ↑
+            feature   (重新应用提交)
+```
+
+**选择建议**：
+
+| 场景 | 推荐 | 理由 |
+|:---|:---|:---|
+| 公共分支合并 | merge | 保留完整历史，避免重写 |
+| 本地提交整理 | rebase | 线性历史，更清晰 |
+| 团队协作 | merge | 避免冲突和混乱 |
+| 个人功能分支 | rebase | 保持主分支整洁 |
+
+---
+
+### C.4 git restore vs git reset vs git revert
+
+```
+【restore】恢复文件到指定状态
+工作区：脏文件 ──git restore──→ 干净文件
+暂存区：已暂存 ──git restore --staged──→ 未暂存
+
+【reset】移动 HEAD 指针
+HEAD: commit-4 ──git reset HEAD~2──→ commit-2
+      ↓
+   丢弃 commit-3,4
+
+【revert】创建新提交来撤销
+历史：A → B → C ──git revert B──→ A → B → C → B' (撤销 B)
+```
+
+---
+
+### C.5 典型工作流可视化
+
+```
+【功能开发完整流程】
+
+1. 从 main 创建功能分支
+   main:    A ─────→ B
+                       \
+                 feature: C
+
+2. 开发功能并提交
+   main:    A ─────→ B
+                       \
+                 feature: C ──→ D ──→ E
+
+3. 同步 main 最新提交（rebase）
+   main:    A ─────→ B ──→ F
+                             \
+                       feature: C' ──→ D' ──→ E'
+
+4. 合并到 main（merge --no-ff）
+   main:    A ─────→ B ──→ F ──→ G (合并提交)
+                             ╲   ╱
+                       feature  E'
+
+5. 删除功能分支
+   main:    A ─────→ B ──→ F ──→ G
+   feature: (已删除)
+```
+
+---
+
+### C.6 冲突解决流程
+
+```
+【冲突产生】
+main:    A ─────→ B (修改了 app.js 第 10 行)
+                      \
+            feature: C (也修改了 app.js 第 10 行)
+
+【合并时冲突】
+git merge feature
+CONFLICT (content): Merge conflict in app.js
+
+【解决步骤】
+1. 打开冲突文件
+   code app.js
+
+2. 查看冲突标记
+   <<<<<<< HEAD
+   // main 分支的代码
+   =======
+   // feature 分支的代码
+   >>>>>>> feature
+
+3. 选择保留的代码（或合并两者）
+   // 合并后的代码
+
+4. 标记解决并提交
+   git add app.js
+   git commit -m "merge: resolve conflict"
+```
+
+---
+
+## 附录 D：Git 工作流对比
 
 ### B.1 Git Flow vs GitHub Flow
 
@@ -5622,3 +5962,371 @@ git rebase --continue
 ---
 
 *本教程持续更新中，最新版本请访问：https://github.com/hjs2015/git-tutorial*
+
+---
+
+## 附录 E：进阶主题
+
+> 💡 **说明**：本附录收录进阶内容，适合有一定 Git 基础后深入学习
+> 
+> 新手建议先掌握前 5 章 + 附录 A-C，再学习本附录内容
+
+### E.1 Git 核心底层原理
+
+#### Git 对象模型
+
+Git 中所有内容都是对象：
+
+```
+【三种基本对象】
+Blob (Binary Large Object) - 文件内容
+  ↓
+Tree - 目录结构（包含 blob 和 tree）
+  ↓
+Commit - 提交信息（指向 tree）
+
+示例：
+commit abc123
+  ↓
+tree def456
+  ├─ blob 789abc (README.md)
+  ├─ blob 321def (app.js)
+  └─ tree 654ghi (src/)
+      ├─ blob 111aaa (main.js)
+      └─ blob 222bbb (utils.js)
+```
+
+#### SHA-1 哈希算法
+
+```
+【对象标识】
+每个对象通过 SHA-1 哈希唯一标识：
+
+commit abc1234567890... (40 字符)
+blob   def4567890123...
+tree   7890123456789...
+
+【哈希碰撞】
+理论上可能，实际上几乎不可能
+2^160 种可能，比宇宙原子数还多
+```
+
+#### Reflog 引用日志
+
+```
+【记录所有 HEAD 变化】
+$ git reflog
+
+abc1234 HEAD@{0}: commit: feat: add login
+def5678 HEAD@{1}: checkout: moving from feature to main
+789abcd HEAD@{2}: commit: fix: bug fix
+
+【恢复误操作】
+# 误删分支后恢复
+git reflog
+git branch recovered-branch abc1234
+```
+
+**详细内容**：见第 6 章（已精简到原理层面）
+
+---
+
+### E.2 git bisect 二分查找
+
+#### 使用场景
+
+当发现 Bug 但不知道是哪个提交引入时，使用二分查找：
+
+```
+【问题】
+当前提交有 Bug，但 100 个提交前的版本是正常的
+手动检查需要测试 100 次
+使用 bisect 只需 log₂(100) ≈ 7 次
+
+【原理】
+正常提交 ──→ Bug 提交
+     ↑           ↑
+   good        bad
+   
+bisect 自动二分查找，快速定位第一个 bad 提交
+```
+
+#### 操作步骤
+
+```bash
+# 1. 开始二分查找
+git bisect start
+
+# 2. 标记当前版本为 bad
+git bisect bad
+
+# 3. 标记一个正常版本为 good
+git bisect good v1.0.0
+
+# 4. Git 自动切换到中间版本
+# 测试该版本...
+
+# 5. 标记好坏
+git bisect good  # 或 git bisect bad
+
+# 6. 重复步骤 4-5，直到找到第一个 bad 提交
+
+# 7. 查看结果
+git bisect log
+
+# 8. 重置
+git bisect reset
+```
+
+#### 自动化 bisect
+
+```bash
+# 使用脚本自动测试
+git bisect start
+git bisect bad HEAD
+git bisect good v1.0.0
+git bisect run ./test-script.sh
+
+# test-script.sh 示例：
+#!/bin/bash
+make && ./run-tests
+exit $?  # 0=good, 1=bad
+```
+
+**适用场景**：
+- ✅ 回归测试：查找引入 Bug 的提交
+- ✅ 性能问题：查找性能下降的提交
+- ✅ 大量提交：手动检查不现实时
+
+**不适用场景**：
+- ❌ 提交历史不连续
+- ❌ 无法自动化测试
+- ❌ 环境配置复杂
+
+---
+
+### E.3 git worktree 工作树
+
+#### 使用场景
+
+需要同时处理多个分支时：
+
+```
+【传统方式】
+需要多个仓库副本，占用空间大
+
+【worktree 方式】
+一个仓库，多个 worktree，共享 .git 目录
+```
+
+#### 操作步骤
+
+```bash
+# 1. 创建 worktree
+git worktree add ../hotfix-branch hotfix
+
+# 2. 查看 worktree
+git worktree list
+
+# 输出：
+/path/to/repo     main
+/path/to/hotfix   hotfix
+
+# 3. 在 worktree 中工作
+cd ../hotfix-branch
+# ... 开发 ...
+
+# 4. 删除 worktree
+git worktree remove ../hotfix-branch
+```
+
+**优势**：
+- ✅ 节省磁盘空间（共享 .git）
+- ✅ 快速切换（无需 checkout）
+- ✅ 并行开发（多个分支同时工作）
+
+**注意事项**：
+- ⚠️ 同一分支不能在多个 worktree 中
+- ⚠️ 需要 Git 2.5+
+
+---
+
+### E.4 git submodule 子模块
+
+#### 使用场景
+
+项目依赖其他 Git 仓库：
+
+```
+【示例】
+my-project/
+├── src/
+├── tests/
+└── vendor/
+    └── library/ (子模块，指向另一个 Git 仓库)
+```
+
+#### 操作步骤
+
+```bash
+# 1. 添加子模块
+git submodule add https://github.com/user/library.git vendor/library
+
+# 2. 初始化子模块
+git submodule init
+git submodule update
+
+# 3. 克隆含子模块的仓库
+git clone --recursive https://github.com/user/my-project.git
+
+# 4. 更新子模块
+git submodule update --remote
+```
+
+**优势**：
+- ✅ 依赖版本固定
+- ✅ 独立更新
+
+**劣势**：
+- ❌ 增加复杂度
+- ❌ 提交历史分散
+
+**替代方案**：
+- Git Subtree（更简单）
+- 包管理器（npm, pip 等）
+
+---
+
+### E.5 git filter-branch 重写历史
+
+> ⚠️ **警告**：重写历史会改变提交哈希，影响所有协作者
+> 
+> 仅在必要时使用，且确保团队知情
+
+#### 使用场景
+
+- 从历史中删除敏感文件
+- 修改作者信息
+- 重组提交历史
+
+#### 示例：删除敏感文件
+
+```bash
+# 从所有历史中删除 secret.txt
+git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch secret.txt" \
+  --prune-empty --tag-name-filter cat -- --all
+
+# 清理
+git for-each-ref --format="delete %(refname)" refs/original | git update-ref --stdin
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+
+# 强制推送
+git push --force --all
+git push --force --tags
+```
+
+**替代方案**：
+- `git filter-repo`（更快更安全）
+- BFG Repo-Cleaner（第三方工具）
+
+---
+
+### E.6 性能优化
+
+#### 大仓库优化
+
+```bash
+# 1. 垃圾回收
+git gc --aggressive --prune=now
+
+# 2. 清理无用对象
+git prune
+git prune-packed
+
+# 3. 优化包文件
+git repack -a -d --depth=250 --window=250
+```
+
+#### 网络优化
+
+```bash
+# 1. 浅克隆（只克隆最近提交）
+git clone --depth 1 https://github.com/user/repo.git
+
+# 2. 单分支克隆
+git clone --single-branch --branch main https://...
+
+# 3. 部分克隆（Git 2.19+）
+git clone --filter=blob:none https://...
+```
+
+#### 配置优化
+
+```bash
+# .gitconfig 优化
+[core]
+    preloadindex = true
+    fscache = true
+[pack]
+    threads = 8
+[fetch]
+    parallel = 4
+```
+
+---
+
+### E.7 高级调试技巧
+
+#### git blame 进阶
+
+```bash
+# 查看每行最后修改的提交
+git blame file.py
+
+# 忽略某些提交
+git blame --ignore-revs-file .git-blame-ignore-revs file.py
+
+# 查看代码来源
+git blame -L 10,20 file.py  # 只看 10-20 行
+```
+
+#### git log 进阶
+
+```bash
+# 按代码内容搜索
+git log -S "function_name" --source --all
+
+# 查看分支图
+git log --graph --oneline --all
+
+# 统计贡献
+git shortlog -sn --all
+```
+
+#### git diff 进阶
+
+```bash
+# 比较分支
+git diff main..feature
+
+# 比较提交
+git diff abc123 def456
+
+# 统计变更
+git diff --stat
+
+# 只看文件名
+git diff --name-only
+```
+
+---
+
+**进阶学习资源**：
+- 📚 《Pro Git》第 9-10 章（底层原理）
+- 📚 《Git Internals》官方文档
+- 🎥 Git 官方 YouTube 频道
+- 🔗 https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain
+
+---
