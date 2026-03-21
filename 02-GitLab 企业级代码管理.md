@@ -1578,15 +1578,1176 @@ curl --header "PRIVATE-TOKEN: <admin_token>" \
 
 ### 5.1 CI/CD 核心概念
 
-（保持原有内容）
+#### 什么是 CI/CD？
+
+**CI/CD** 是 **持续集成（Continuous Integration）**、**持续交付（Continuous Delivery）** 和 **持续部署（Continuous Deployment）** 的统称，是现代软件开发的自动化实践。
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   代码提交   │ →  │  持续集成   │ →  │  持续交付   │ →  │  持续部署   │
+│  Commit     │    │     CI      │    │     CD      │    │     CD      │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+                        ↓                  ↓                  ↓
+                   自动构建测试         自动发布到         自动部署到
+                   自动代码检查         预发布环境         生产环境
+```
+
+#### CI/CD 三阶段详解
+
+| 阶段 | 英文 | 含义 | 自动化程度 | 人工干预 |
+|:---|:---|:---|:---:|:---:|
+| **持续集成** | CI | 频繁集成代码，自动构建测试 | ✅ 全自动 | ❌ 无需 |
+| **持续交付** | CD | 自动发布到预发布环境 | ✅ 全自动 | ⚠️ 手动确认部署 |
+| **持续部署** | CD | 自动部署到生产环境 | ✅ 全自动 | ❌ 无需 |
+
+#### 1. 持续集成（Continuous Integration）
+
+**核心理念**：
+- 开发人员频繁提交代码（每天多次）
+- 每次提交自动触发构建和测试
+- 快速发现并修复集成错误
+
+**CI 流程**：
+```
+1. 开发人员推送代码到 GitLab
+        ↓
+2. GitLab 检测到代码变更
+        ↓
+3. 自动触发 Pipeline
+        ↓
+4. 执行构建（编译、打包）
+        ↓
+5. 运行自动化测试（单元测试、集成测试）
+        ↓
+6. 代码质量检查（SonarQube）
+        ↓
+7. 生成测试报告和覆盖率报告
+        ↓
+8. 成功/失败通知
+```
+
+**CI 最佳实践**：
+- ✅ 每天至少提交一次代码
+- ✅ 每次提交都运行完整测试套件
+- ✅ 构建失败立即修复
+- ✅ 保持快速反馈（<10 分钟）
+- ✅ 测试覆盖率 > 80%
+
+#### 2. 持续交付（Continuous Delivery）
+
+**核心理念**：
+- 在 CI 基础上，自动发布到预发布环境
+- 随时可以手动部署到生产
+- 保证代码始终处于可发布状态
+
+**CD 流程**：
+```
+CI 流程完成
+        ↓
+自动部署到 Staging 环境
+        ↓
+运行自动化验收测试
+        ↓
+性能测试
+        ↓
+安全扫描
+        ↓
+✅ 准备就绪，等待手动部署到生产
+```
+
+**CD 最佳实践**：
+- ✅ 自动化部署脚本
+- ✅ 环境配置版本化
+- ✅ 一键回滚能力
+- ✅ 部署审批流程
+- ✅ 部署通知
+
+#### 3. 持续部署（Continuous Deployment）
+
+**核心理念**：
+- 在持续交付基础上，自动部署到生产
+- 无需人工干预
+- 需要完善的监控和告警
+
+**CD 流程**：
+```
+CD 流程完成
+        ↓
+自动部署到 Production
+        ↓
+健康检查
+        ↓
+监控告警
+        ↓
+✅ 用户立即可用
+```
+
+**CD 最佳实践**：
+- ✅ 完善的监控体系
+- ✅ 自动化回滚机制
+- ✅ 灰度发布/蓝绿部署
+- ✅ 功能开关（Feature Flag）
+- ✅ A/B 测试能力
+
+#### GitLab CI/CD 核心术语
+
+| 术语 | 英文 | 含义 | 示例 |
+|:---|:---|:---|:---|
+| **流水线** | Pipeline | CI/CD 流程的完整执行 | 一次代码提交触发一次流水线 |
+| **阶段** | Stage | 流水线的逻辑分组 | build、test、deploy |
+| **任务** | Job | 具体执行的工作单元 | 编译、测试、部署 |
+| **Runner** | Runner | 执行 Job 的代理程序 | Shell Runner、Docker Runner |
+| **Artifacts** | Artifacts | Job 生成的文件 | 编译产物、测试报告 |
+| **缓存** | Cache | 跨 Job 共享的文件 | 依赖包、编译中间文件 |
+| **环境变量** | Variables | 配置参数 | CI_COMMIT_SHA、DEPLOY_ENV |
+
+#### Pipeline 执行流程示例
+
+```yaml
+stages:
+  - build    # 第 1 阶段：构建
+  - test     # 第 2 阶段：测试
+  - deploy   # 第 3 阶段：部署
+
+build_job:
+  stage: build
+  script:
+    - echo "构建项目..."
+    - ./build.sh
+
+test_job_1:
+  stage: test
+  script:
+    - echo "运行单元测试..."
+    - ./test.sh
+
+test_job_2:
+  stage: test
+  script:
+    - echo "运行集成测试..."
+    - ./integration-test.sh
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo "部署到生产..."
+    - ./deploy.sh
+  only:
+    - main
+```
+
+**执行顺序**：
+```
+         build_job
+         (阶段 1)
+              ↓
+    ┌─────────┴─────────┐
+    ↓                   ↓
+test_job_1         test_job_2
+(阶段 2，并行执行)
+    ↓                   ↓
+    └─────────┬─────────┘
+              ↓
+         deploy_job
+         (阶段 3)
+```
+
+**执行规则**：
+- ✅ 同一阶段的 Job **并行执行**
+- ✅ 不同阶段的 Job **顺序执行**
+- ✅ 前一阶段全部成功，才执行下一阶段
+- ✅ 任一 Job 失败，后续阶段不执行
+
+#### CI/CD 成熟度模型
+
+```
+Level 1: 手动部署
+└─ 开发手动构建、手动部署
+   ⭐ 成熟度：低
+   ⏱️ 部署时间：小时级
+   😰 风险：高
+
+Level 2: 部分自动化
+└─ 自动构建、手动部署
+   ⭐ 成熟度：中低
+   ⏱️ 部署时间：30 分钟
+   😰 风险：中高
+
+Level 3: 持续集成
+└─ 自动构建、自动测试、手动部署
+   ⭐ 成熟度：中
+   ⏱️ 部署时间：10 分钟
+   😰 风险：中
+
+Level 4: 持续交付
+└─ 自动构建、自动测试、自动部署到预发布、手动确认生产部署
+   ⭐ 成熟度：高
+   ⏱️ 部署时间：5 分钟
+   😰 风险：低
+
+Level 5: 持续部署
+└─ 全自动部署到生产
+   ⭐ 成熟度：最高
+   ⏱️ 部署时间：1 分钟
+   😰 风险：最低（有完善监控）
+```
+
+---
 
 ### 5.2 GitLab Runner 部署
 
-（保持原有内容）
+#### Runner 类型介绍
+
+GitLab Runner 是执行 CI/CD Job 的代理程序，有三种类型：
+
+| 类型 | 英文 | 作用范围 | 适用场景 | 配置位置 |
+|:---|:---|:---|:---|:---|
+| **共享 Runner** | Shared Runner | 整个 GitLab 实例 | 公共项目、通用任务 | Admin Area → Runners |
+| **组 Runner** | Group Runner | 组内所有项目 | 团队项目、部门项目 | Group → Settings → CI/CD |
+| **项目 Runner** | Project Runner | 单个项目 | 专用环境、特殊需求 | Project → Settings → CI/CD |
+
+#### Runner 架构图
+
+```
+┌─────────────────┐
+│   GitLab Server │
+│   (10.0.0.10)   │
+└────────┬────────┘
+         │
+         │ HTTP/HTTPS
+         │
+    ┌────┴────┐
+    │         │
+    ↓         ↓
+┌─────────┐ ┌─────────┐
+│ Runner 1│ │ Runner 2│
+│(共享)   │ │(项目)   │
+│10.0.0.20│ │10.0.0.21│
+└─────────┘ └─────────┘
+    │             │
+    ↓             ↓
+┌─────────┐ ┌─────────┐
+│  Job 1  │ │  Job 2  │
+│ 构建    │ │ 测试    │
+└─────────┘ └─────────┘
+```
+
+#### Runner 执行器（Executor）
+
+| 执行器 | 特点 | 适用场景 | 隔离性 |
+|:---|:---|:---|:---:|
+| **Docker** | 每个 Job 独立容器 | 推荐，环境隔离好 | ⭐⭐⭐⭐⭐ |
+| **Shell** | 直接在宿主机执行 | 简单场景、高性能 | ⭐⭐ |
+| **Kubernetes** | 在 K8s Pod 中执行 | 大规模、弹性伸缩 | ⭐⭐⭐⭐⭐ |
+| **VirtualBox** | 在虚拟机中执行 | 特殊需求 | ⭐⭐⭐⭐ |
+| **SSH** | 通过 SSH 远程执行 | 远程服务器部署 | ⭐⭐⭐ |
+
+#### 部署方式 1：Docker 部署（推荐）
+
+**步骤 1：安装 Docker**
+
+```bash
+# CentOS/RHEL
+sudo dnf install -y yum-utils
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+
+# Ubuntu
+curl -fsSL https://get.docker.com | bash
+
+# 启动 Docker
+sudo systemctl enable docker
+sudo systemctl start docker
+docker --version
+```
+
+**步骤 2：运行 GitLab Runner 容器**
+
+```bash
+docker run -d --name gitlab-runner \
+  --restart always \
+  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gitlab/gitlab-runner:latest
+```
+
+**步骤 3：注册 Runner**
+
+```bash
+# 进入容器
+docker exec -it gitlab-runner gitlab-runner register
+
+# 按提示输入：
+# GitLab URL: https://gitlab.company.com
+# Registration token: <从 GitLab 获取>
+# Description: docker-runner-01
+# Tags: docker,build,test
+# Executor: docker
+# Default Docker image: docker:24.0
+```
+
+**步骤 4：验证注册**
+
+```bash
+# 查看 Runner 状态
+docker exec -it gitlab-runner gitlab-runner list
+
+# 或在 GitLab Web 界面查看
+# Admin Area → Monitoring → Runners
+```
+
+#### 部署方式 2：二进制部署
+
+**步骤 1：下载 Runner**
+
+```bash
+# 下载最新版本
+curl -L --output /usr/local/bin/gitlab-runner \
+  "https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64"
+
+# 添加执行权限
+chmod +x /usr/local/bin/gitlab-runner
+
+# 验证版本
+gitlab-runner --version
+```
+
+**步骤 2：创建系统用户**
+
+```bash
+sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
+```
+
+**步骤 3：安装为系统服务**
+
+```bash
+sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+sudo gitlab-runner start
+sudo systemctl enable gitlab-runner
+sudo systemctl status gitlab-runner
+```
+
+**步骤 4：注册 Runner**
+
+```bash
+sudo gitlab-runner register
+
+# 按提示输入：
+# GitLab URL: https://gitlab.company.com
+# Registration token: <从 GitLab 获取>
+# Description: shell-runner-01
+# Tags: shell,deploy
+# Executor: shell
+```
+
+#### 部署方式 3：Kubernetes 部署
+
+**步骤 1：添加 Helm Chart 仓库**
+
+```bash
+helm repo add gitlab https://charts.gitlab.io
+helm repo update
+```
+
+**步骤 2：创建命名空间**
+
+```bash
+kubectl create namespace gitlab-runner
+```
+
+**步骤 3：配置 values.yaml**
+
+```yaml
+# values.yaml
+
+gitlabUrl: https://gitlab.company.com
+runnerRegistrationToken: "<从 GitLab 获取>"
+
+runners:
+  config: |
+    [[runners]]
+      [runners.kubernetes]
+        namespace = "gitlab-runner"
+        image = "ubuntu:20.04"
+        privileged = true
+        service_account = "gitlab-runner"
+        
+  tags: "kubernetes,docker"
+  parallel: 10  # 并发数
+```
+
+**步骤 4：安装 Runner**
+
+```bash
+helm install --namespace gitlab-runner gitlab-runner gitlab/gitlab-runner \
+  -f values.yaml
+```
+
+**步骤 5：验证安装**
+
+```bash
+kubectl get pods -n gitlab-runner
+kubectl get configmap -n gitlab-runner gitlab-runner-config -o yaml
+```
+
+#### Runner 配置详解
+
+**配置文件位置**：
+```bash
+# Docker 部署
+/srv/gitlab-runner/config/config.toml
+
+# 二进制部署
+/etc/gitlab-runner/config.toml
+
+# Kubernetes 部署
+kubectl get configmap -n gitlab-runner gitlab-runner-config
+```
+
+**config.toml 示例**：
+```toml
+concurrent = 10  # 全局并发数
+check_interval = 0  # 检查间隔（秒）
+
+[session_server]
+  session_timeout = 1800  # 会话超时（秒）
+
+[[runners]]
+  name = "docker-runner-01"
+  url = "https://gitlab.company.com/"
+  token = "xxxxx"
+  executor = "docker"
+  limit = 5  # 该 Runner 最大并发
+  
+  [runners.docker]
+    tls_verify = false
+    image = "docker:24.0"
+    privileged = true
+    disable_entrypoint = false
+    disable_cache = false
+    volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"]
+    shm_size = 0
+    network_mode = "host"
+    pull_policy = "if-not-present"  # 镜像拉取策略
+    
+  [runners.cache]
+    Type = "s3"  # 缓存类型
+    Shared = true
+    [runners.cache.s3]
+      ServerAddress = "s3.amazonaws.com"
+      AccessKey = "xxx"
+      SecretKey = "xxx"
+      BucketName = "gitlab-runner-cache"
+      Insecure = true
+```
+
+#### Runner 标签（Tags）管理
+
+**标签作用**：
+- 将 Job 路由到特定 Runner
+- 实现环境隔离（dev/test/prod）
+- 实现资源隔离（普通/高性能）
+
+**标签配置示例**：
+```toml
+[[runners]]
+  name = "dev-runner"
+  tags = ["docker", "dev", "small"]
+  executor = "docker"
+
+[[runners]]
+  name = "prod-runner"
+  tags = ["docker", "prod", "large"]
+  executor = "docker"
+```
+
+**Job 中使用标签**：
+```yaml
+deploy_dev:
+  script: ./deploy.sh dev
+  tags:
+    - dev
+
+deploy_prod:
+  script: ./deploy.sh prod
+  tags:
+    - prod
+```
+
+#### Runner 监控与维护
+
+**查看 Runner 状态**：
+```bash
+# 列出所有 Runner
+gitlab-runner list
+
+# 查看 Runner 详情
+gitlab-runner verify
+
+# 重启 Runner
+sudo systemctl restart gitlab-runner
+
+# 查看 Runner 日志
+journalctl -u gitlab-runner -f
+```
+
+**Runner 健康检查**：
+```bash
+#!/bin/bash
+# /usr/local/bin/runner-health-check.sh
+
+echo "=== Runner 健康检查 ==="
+echo "时间：$(date)"
+echo ""
+
+# 1. 检查服务状态
+echo "【1】服务状态"
+systemctl is-active gitlab-runner
+echo ""
+
+# 2. 检查 Runner 列表
+echo "【2】Runner 列表"
+gitlab-runner list
+echo ""
+
+# 3. 检查系统资源
+echo "【3】系统资源"
+echo "CPU: $(top -bn1 | grep "Cpu(s)" | awk '{print $2}')%"
+echo "内存：$(free -h | awk 'NR==2 {print $3"/"$2}')"
+echo "磁盘：$(df -h / | awk 'NR==2 {print $5}')"
+echo ""
+
+# 4. 检查 Docker（如使用）
+echo "【4】Docker 状态"
+docker info | grep -E "Containers|Images"
+echo ""
+
+echo "=== 检查完成 ==="
+```
+
+#### Runner 常见问题排查
+
+**问题 1：Runner 离线**
+
+```bash
+# 检查服务状态
+sudo systemctl status gitlab-runner
+
+# 检查网络连接
+curl -I https://gitlab.company.com
+
+# 检查 Token 是否有效
+# Admin Area → Runners → 查看 Runner 状态
+
+# 解决方案：
+# 1. 重启 Runner 服务
+# 2. 重新注册 Runner
+# 3. 检查防火墙规则
+```
+
+**问题 2：Job 一直 Pending**
+
+```bash
+# 检查 Runner 并发数
+# config.toml 中的 concurrent 和 limit
+
+# 检查标签匹配
+# Job 的 tags 是否与 Runner 的 tags 匹配
+
+# 解决方案：
+# 1. 增加 Runner 数量
+# 2. 提高并发数
+# 3. 检查标签配置
+```
+
+**问题 3：Docker 权限不足**
+
+```bash
+# 错误信息：permission denied while trying to connect to Docker daemon socket
+
+# 解决方案：
+# 1. 将 gitlab-runner 用户加入 docker 组
+sudo usermod -aG docker gitlab-runner
+
+# 2. 或使用 privileged 模式
+[runners.docker]
+  privileged = true
+```
+
+---
 
 ### 5.3 .gitlab-ci.yml 基础配置
 
-（保持原有内容）
+#### YAML 语法基础
+
+**基本规则**：
+```yaml
+# 键值对用冒号分隔
+key: value
+
+# 列表用短横线
+list:
+  - item1
+  - item2
+  - item3
+
+# 缩进使用空格（不能用 Tab）
+parent:
+  child:
+    - item1
+    - item2
+
+# 字符串可以用引号包裹（可选）
+string: "hello world"
+string2: 'hello world'
+
+# 注释用 # 开头
+# 这是注释
+```
+
+**多行字符串**：
+```yaml
+# 保留换行符（|）
+description: |
+  这是第一行
+  这是第二行
+  这是第三行
+
+# 折叠换行符（>）
+description: >
+  这是第一行
+  这是第二行
+  这是第三行
+# 实际值：这是第一行 这是第二行 这是第三行
+```
+
+#### .gitlab-ci.yml 基本结构
+
+**最简示例**：
+```yaml
+# 定义阶段
+stages:
+  - build
+  - test
+  - deploy
+
+# 定义 Job
+build_job:
+  stage: build
+  script:
+    - echo "构建项目..."
+    - ./build.sh
+
+test_job:
+  stage: test
+  script:
+    - echo "运行测试..."
+    - ./test.sh
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo "部署项目..."
+    - ./deploy.sh
+  only:
+    - main  # 仅 main 分支触发
+```
+
+#### 核心关键字详解
+
+**1. stages（阶段）**
+
+```yaml
+# 定义流水线的执行阶段
+stages:
+  - build      # 第 1 阶段：构建
+  - test       # 第 2 阶段：测试
+  - deploy     # 第 3 阶段：部署
+  - cleanup    # 第 4 阶段：清理
+
+# 执行顺序：从左到右
+# 同一阶段的 Job 并行执行
+```
+
+**2. image（镜像）**
+
+```yaml
+# 全局镜像（所有 Job 默认使用）
+image: docker:24.0
+
+# Job 级别镜像
+build:
+  image: maven:3.9-openjdk-17
+  script:
+    - mvn package
+
+test:
+  image: python:3.11
+  script:
+    - pytest
+```
+
+**3. variables（变量）**
+
+```yaml
+# 全局变量
+variables:
+  APP_NAME: "my-app"
+  DOCKER_REGISTRY: "registry.company.com"
+  DEPLOY_ENV: "production"
+
+# Job 级别变量
+deploy:
+  variables:
+    DEPLOY_ENV: "staging"  # 覆盖全局变量
+  script:
+    - echo "部署到 ${DEPLOY_ENV}"
+```
+
+**4. before_script / after_script**
+
+```yaml
+# 全局 before_script（所有 Job 执行前运行）
+before_script:
+  - echo "准备环境..."
+  - apt-get update
+
+# 全局 after_script（所有 Job 执行后运行）
+after_script:
+  - echo "清理环境..."
+
+# Job 级别 before_script
+build:
+  before_script:
+    - echo "构建前准备..."
+  script:
+    - ./build.sh
+
+# Job 级别 after_script
+test:
+  after_script:
+    - echo "测试后清理..."
+  script:
+    - ./test.sh
+```
+
+**5. script（执行脚本）**
+
+```yaml
+job:
+  script:
+    - echo "单行命令"
+    - |
+      # 多行命令
+      echo "第一行"
+      echo "第二行"
+    - bash script.sh
+    - |
+      if [ -f file.txt ]; then
+        echo "文件存在"
+      else
+        echo "文件不存在"
+      fi
+```
+
+**6. tags（标签）**
+
+```yaml
+# 指定 Runner 标签
+deploy_dev:
+  script: ./deploy.sh dev
+  tags:
+    - docker
+    - dev
+
+deploy_prod:
+  script: ./deploy.sh prod
+  tags:
+    - docker
+    - prod
+    - large
+```
+
+**7. artifacts（产物）**
+
+```yaml
+# 基础配置
+build:
+  script:
+    - ./build.sh
+  artifacts:
+    paths:
+      - dist/
+      - build/
+    expire_in: 1 week  # 保留时间
+
+# 报告类型
+test:
+  script:
+    - ./test.sh
+  artifacts:
+    reports:
+      junit: test-results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+```
+
+**8. cache（缓存）**
+
+```yaml
+# 全局缓存
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .npm/
+
+# Job 级别缓存
+build:
+  cache:
+    key: ${CI_COMMIT_REF_NAME}
+    paths:
+      - dependencies/
+    policy: pull-push  # pull, push, pull-push
+```
+
+**9. only / except（触发条件）**
+
+```yaml
+# 仅 main 分支
+deploy:
+  script: ./deploy.sh
+  only:
+    - main
+
+# 仅标签
+release:
+  script: ./release.sh
+  only:
+    - tags
+
+# 排除特定分支
+test:
+  script: ./test.sh
+  except:
+    - main
+
+# 多种条件
+job:
+  script: ./run.sh
+  only:
+    - main
+    - develop
+    - tags
+    - schedules  # 定时任务
+    - web  # 手动触发
+```
+
+**10. rules（高级触发规则）**
+
+```yaml
+# 基础规则
+job:
+  script: ./run.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+
+# 多条件
+deploy:
+  script: ./deploy.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"
+      when: manual
+    - if: $CI_COMMIT_TAG
+      when: on_success
+    - when: never  # 默认不执行
+```
+
+**11. dependencies（依赖）**
+
+```yaml
+# 指定依赖的 Job
+deploy:
+  stage: deploy
+  dependencies:
+    - build
+    - test
+  script:
+    - ./deploy.sh
+
+# 不依赖任何 Job
+independent:
+  stage: test
+  dependencies: []
+  script:
+    - ./independent-test.sh
+```
+
+**12. needs（并行流水线）**
+
+```yaml
+# 传统方式（顺序执行）
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script: ./build.sh
+
+test:
+  stage: test
+  script: ./test.sh
+  needs: [build]  # 等待 build 完成
+
+deploy:
+  stage: deploy
+  script: ./deploy.sh
+  needs: [test]  # 等待 test 完成
+
+# 使用 needs 实现 DAG（有向无环图）
+build_frontend:
+  stage: build
+  script: ./build-frontend.sh
+
+build_backend:
+  stage: build
+  script: ./build-backend.sh
+
+test_frontend:
+  stage: test
+  script: ./test-frontend.sh
+  needs: [build_frontend]  # 只依赖 frontend build
+
+test_backend:
+  stage: test
+  script: ./test-backend.sh
+  needs: [build_backend]  # 只依赖 backend build
+
+deploy:
+  stage: deploy
+  script: ./deploy.sh
+  needs: [test_frontend, test_backend]  # 等待两个测试完成
+```
+
+#### 完整示例：前端项目
+
+```yaml
+# .gitlab-ci.yml - 前端项目完整示例
+
+image: node:20
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+# 全局变量
+variables:
+  NPM_CONFIG_CACHE: "${CI_PROJECT_DIR}/.npm"
+  APP_NAME: "frontend-app"
+
+# 全局缓存
+cache:
+  key: ${CI_COMMIT_REF_SLUG}-npm
+  paths:
+    - node_modules/
+    - .npm/
+
+# 全局 before_script
+before_script:
+  - echo "Node 版本：$(node -v)"
+  - echo "NPM 版本：$(npm -v)"
+
+# Lint 检查
+lint:
+  stage: lint
+  script:
+    - npm ci --cache ${NPM_CONFIG_CACHE} --prefer-offline
+    - npm run lint
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# 单元测试
+unit_test:
+  stage: test
+  script:
+    - npm ci --cache ${NPM_CONFIG_CACHE} --prefer-offline
+    - npm run test:coverage
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+  coverage: '/Lines\s*:\s*(\d+.\d+)%/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# E2E 测试
+e2e_test:
+  stage: test
+  image: cypress/included:latest
+  script:
+    - npm run e2e
+  artifacts:
+    paths:
+      - cypress/videos/
+      - cypress/screenshots/
+    when: on_failure
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# 构建
+build:
+  stage: build
+  script:
+    - npm ci --cache ${NPM_CONFIG_CACHE} --prefer-offline
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
+
+# 部署到测试环境
+deploy_test:
+  stage: deploy
+  script:
+    - echo "部署到测试环境..."
+    - ./deploy.sh test
+  environment:
+    name: test
+    url: https://test.example.com
+  tags:
+    - shell
+    - test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# 部署到生产环境
+deploy_prod:
+  stage: deploy
+  script:
+    - echo "部署到生产环境..."
+    - ./deploy.sh prod
+  environment:
+    name: production
+    url: https://www.example.com
+  tags:
+    - shell
+    - prod
+  when: manual  # 手动触发
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+```
+
+#### 配置验证
+
+**语法检查**：
+```bash
+# 使用 GitLab CI Lint
+curl --header "PRIVATE-TOKEN: <your_access_token>" \
+  --request POST \
+  --form "content=@.gitlab-ci.yml" \
+  "https://gitlab.example.com/api/v4/ci/lint"
+
+# 或在 GitLab Web 界面
+# Project → CI/CD → CI/CD Editor
+# 粘贴 .gitlab-ci.yml 内容，点击 "Validate"
+```
+
+**本地验证工具**：
+```bash
+# 安装 gitlab-ci-lint
+npm install -g @gitlab/lint
+
+# 验证配置
+gitlab-ci-lint .gitlab-ci.yml
+```
+
+#### 最佳实践
+
+**1. 保持配置简洁**
+```yaml
+# ❌ 避免过度复杂
+job:
+  script:
+    - echo "Step 1"
+    - echo "Step 2"
+    - echo "Step 3"
+    - echo "Step 4"
+    - echo "Step 5"
+    - echo "Step 6"
+    - echo "Step 7"
+    - echo "Step 8"
+
+# ✅ 使用脚本文件
+job:
+  script:
+    - ./ci-scripts/job-script.sh
+```
+
+**2. 使用模板和 extends**
+```yaml
+# 定义模板
+.test_template:
+  script:
+    - npm test
+  artifacts:
+    reports:
+      junit: test-results.xml
+
+# 复用模板
+unit_test:
+  extends: .test_template
+  script:
+    - npm run test:unit
+
+integration_test:
+  extends: .test_template
+  script:
+    - npm run test:integration
+```
+
+**3. 合理设置超时**
+```yaml
+job:
+  timeout: 30 minutes  # 默认 60 分钟
+```
+
+**4. 允许失败（非关键 Job）**
+```yaml
+notify:
+  script: ./notify.sh
+  allow_failure: true
+  when: always
+```
+
+**5. 使用锚点减少重复**
+```yaml
+# 定义锚点
+.variables_common: &variables_common
+  NODE_ENV: production
+  LOG_LEVEL: info
+
+# 使用锚点
+job1:
+  variables:
+    <<: *variables_common
+    APP_NAME: app1
+
+job2:
+  variables:
+    <<: *variables_common
+    APP_NAME: app2
+```
+
+---
 
 ### 5.4 多技术栈 CI/CD 模板
 
